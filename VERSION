@@ -1,0 +1,114 @@
+//****************************************************************************************
+//
+//  Copyright (c) 2015-2020, Yoshifumi Nakamura <nakamura@riken.jp>
+//  Copyright (c) 2015-2020, Yuta Mukai         <mukai.yuta@fujitsu.com>
+//  Copyright (c) 2018-2020, Ken-Ichi Ishikawa  <ishikawa@theo.phys.sci.hirosima-u.ac.jp>
+//  Copyright (c) 2019-2020, Issaku Kanamori    <kanamori-i@riken.jp>
+//
+//
+//  All rights reserved.
+//
+//  Redistribution and use in source and binary forms, with or without
+//  modification, are permitted provided that the following conditions are
+//  met:
+//
+//  * Redistributions of source code must retain the above copyright
+//    notice, this list of conditions and the following disclaimer. 
+//
+//  * Redistributions in binary form must reproduce the above copyright
+//    notice, this list of conditions and the following disclaimer listed
+//    in this license in the documentation and/or other materials
+//    provided with the distribution.
+//
+//  * Neither the name of the copyright holders nor the names of its
+//    contributors may be used to endorse or promote products derived from
+//    this software without specific prior written permission.
+//
+//  THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+//  "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT  
+//  LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
+//  A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT 
+//  OWNER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL,
+//  SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT
+//  LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE,
+//  DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY
+//  THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT  
+//  (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE
+//  OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE. 
+//
+//----------------------------------------------------------------------------------------
+//  ACKNOWLEDGMENT
+//
+//  This software has been developed in a co-design working group for the lattice QCD
+//  supported by MEXT's programs for the Development and Improvement for the Next
+//  Generation Ultra High-Speed Computer System, under its Subsidies for Operating the
+//  Specific Advanced Large Research Facilities, and Priority Issue 9 
+//  (Elucidation of the Fundamental Laws and Evolution of the Universe) to be tackled by
+//  using the Supercomputer Fugaku.
+//
+//****************************************************************************************
+0.2.5
+
+  merged qws_update_20200312 (qws-0.2.4_eval2)
+  removed data/data_* for kernelize
+  moved necessary files at HP/ to main directory and removed HP/
+  added LICENCE to all files
+
+0.2.4
+
+  merged timer modification, CA9-200107-F-2-qws-0.2.2_patch_200107
+  merged rankmapping, qws_update_20200124
+
+0.2.3
+
+  bug fixed for qws_xbound_mpi.cc of qws-0.2.1_utofu
+  merged utofu_threaded version
+  modified options and __builtin_prefetch for lang/fjcompiler20191226_01
+
+0.2.2
+
+  add timing2, test cases CASE7, 8, and 9
+  merged qws-0.2.1_utofu except for
+     qws_xbound_mpi.cc
+        is v0.2.1 style as calling MPI_Start for recv/send buffs at same time
+
+0.2.1
+
+  [VLEND|VLENS] = 2 available
+  some changes for compiling without OPENMP
+
+0.2.0
+
+  merged qws-0.1.9_double_buffering_rdma
+  changed HP/prec_ddd_s_h.h to avoid NaN when NPY or NPZ or NPT == 1
+  performed some patchs by Takagi-san for spack
+
+0.1.9
+
+  added renorm and zero to prec_ddd_s_
+  changed prec_ddd_s_ to avoid NaN when NPY or NPZ or NPT == 1
+  removed unnecessary array in prec_ddd_s_
+  jinv_ddd_in_s_noprl -> jinv_ddd_in_s_noprl_
+  _OHTER_CALC_ -> _OTHER_CALC_
+  timing.c -> time.c
+  CASE* -> ./data/CASE*
+
+  merged CA9-181009-F-1-qws-0.1.8_tune20181009
+     (ref. README_qws-0.1.8_tune20181009.txt)
+  merged qws-0.1.2-KI_HP-v2
+     (compile error with gcc/4.8.4)
+     (compile error with mpiFCCpx)
+
+0.1.8
+
+  changed as README_qws-0.1.7_tune20171120.txt
+  fixed bug that counter & timer of functions are incorrect with -D_CHECK_TIMING [timing.cc]
+
+0.1.7
+
+  changed as README_qws-0.1.5_tune20160920.txt
+  changed as README_qws-0.1.5_tune20161220.txt
+
+0.1.6
+
+  included files for palib
