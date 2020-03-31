@@ -112,14 +112,6 @@ extern "C"{
 
     mult_count = 0;
 
-#ifdef DUMP_DATA_FOR_KERNELIZE
-    static int first=1;
-    if(first) {
-      dump_asm_data((int*)b, sizeof(scs_t)/sizeof(float)*vols*2, "bicgstab_precdd_s_b");
-      dump_asm_data((int*)glus, sizeof(glus_t)/sizeof(float)*vols*NDIM*NEO, "global_glus");
-      dump_asm_data((int*)clvs, sizeof(clvs_t)/sizeof(float)*vols*NEO, "global_clvs");
-    }
-#endif
 
     _BCG_PRECDDS_TIC_;
 #ifdef _DEBUG_
@@ -203,24 +195,6 @@ extern "C"{
 #endif
 
     for (iter=0; iter<(*maxiter);iter++){
-#ifdef KERNELIZE
-      if(iter==1) prof_flag=1;
-#endif
-#ifdef DUMP_DATA_FOR_KERNELIZE
-      if(first && iter==2) {
-        float result = 0;
-#pragma omp parallel for reduction(+:result)
-        for(int i=0; i<vols*2; i++){
-          for(int j=0; j<24; j++){
-            for(int v=0; v<VLENS; v++){
-              result += x[i].ccs[j].v[v] * x[i].ccs[j].v[v];
-            }
-          }
-        }
-        printf("result: %f\n", result);
-        first=0;
-      }
-#endif
       _BCG_PRECDDS_ITER_TIC_;
       // q = Ap
       //    _PREC_DDD_S_TIC_;
@@ -349,12 +323,8 @@ extern "C"{
       if (0==rank) printf("@@ %5d %12.7e\n",mult_count,err);
 #endif
       if (sqrt(rnorm/bnorm) < *tol){
-#ifdef KERNELIZE
-        dummy();
-#else
 	_BCG_PRECDDS_ITER_TOC_;
 	break;
-#endif
       }
 
       // t = Ar
@@ -491,12 +461,8 @@ extern "C"{
       if (0==rank) printf("@@ %5d %12.7e\n",mult_count,err);
 #endif
       if (sqrt(rnorm/bnorm) < *tol){
-#ifdef KERNELIZE
-        dummy();
-#else
 	_BCG_PRECDDS_ITER_TOC_;
 	break;
-#endif
       }
 
 

@@ -51,13 +51,12 @@ debug     =
 mpi       =1
 omp       =1
 #compiler [openmpi-gnu, gnu, intel, fujitsu_native, fujitsu_cross]
-compiler  =fujitsu_cross
-kernelize =
+compiler  =intel
 #arch [fx100, postk, skylake, ofp, thunderx2, simulator]
-arch      =postk
+arch      =skylake
 #profiler [timing, fapp, fpcoll, pa] (nondisclousure: timing2)
-profiler  =timing2
-timing2_path=$(HOME)/opt/timing2.o
+profiler  =timing
+#timing2_path=$(HOME)/opt/timing2.o
 prof_selective=
 #target [jinv, in, pre, pos, other, all_calc, overlapped, send, send_post]
 target    =all_calc
@@ -77,10 +76,6 @@ CPPFLAGS  = $(cppflags)
 
 PATH_LIBREADPIC=$(HOME)
 
-ifdef kernelize
-  mpi       =
-  MYFLAGS =  -DKERNELIZE -DEML_LIB -DCOMPILE_TIME_DIM_SIZE
-endif
 
 ifeq ($(compiler),openmpi-gnu)
   ifdef mpi
@@ -326,17 +321,10 @@ MAIN = main.o
 
 ifdef kernelize
   OBJS := \
-    qws.o \
-    ddd_in_s.o \
-    ddd_out_s.o \
-    static_solver.o \
-    bicgstab_precdd_s.o \
-    clover_s.o \
     report.o \
     eml_lib.o \
     util.o \
     data.o \
-    time.o
   MAIN = main_kern.o
 endif
 

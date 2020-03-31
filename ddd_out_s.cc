@@ -299,15 +299,11 @@ static inline void ddd_out_pre_s_noprl(scs_t* __restrict__  in, int* __restrict_
     }
   }
 #else // _THREADED_RDMA
-#ifdef KERNELIZE
-#pragma omp master
-#else
 #ifdef _NO_OMP_SINGLE
 #pragma omp master
 #else
 #pragma omp single nowait
 #endif // _NO_OMP_SINGLE
-#endif // KERNELIZE
   {
     xbound_recv_updateall(4); // update the pointer to buffer before memcpy
     if (*idomain == 0) {
@@ -367,15 +363,11 @@ static inline void ddd_out_pos_s_noprl(scs_t* __restrict__ out, scs_t* __restric
     }
   }
 #else // #ifdef _THREADED_RDMA
-#ifdef KERNELIZE
-#pragma omp master
-#else
 #ifdef _NO_OMP_SINGLE
 #pragma omp master
 #else
 #pragma omp single
 #endif // _NO_OMP_SINGLE
-#endif // KERNELIZE
   {
 
     if (*idomain == 0) {
@@ -392,13 +384,9 @@ static inline void ddd_out_pos_s_noprl(scs_t* __restrict__ out, scs_t* __restric
     xbound_wait(6,4);
     xbound_wait(7,4);
   }
-#ifdef KERNELIZE
-#pragma omp barrier
-#else
 #ifdef _NO_OMP_SINGLE
 #pragma omp barrier
 #endif // _NO_OMP_SINGLE
-#endif // KERNELIZE
 #endif // _THREADED_RDMA
   if(is_timer_enabled) {
     _COMM_TOC_;
@@ -619,27 +607,19 @@ static inline void ddd_out_pos_s_noprl(scs_t* __restrict__ out, scs_t* __restric
     _COMM_TIC_;
     _COMLIB_SEND_WAIT_ALL_C_TIC_;
   }
-#ifdef KERNELIZE
-#pragma omp master
-#else
 #ifdef _NO_OMP_SINGLE
 #pragma omp master
 #else
 #pragma omp single
 #endif // _NO_OMP_SINGLE
-#endif // KERNELIZE
   {
     xbound_send_waitall(4);
     xbound_recv_okall(4);
     xbound_flip_parity(4);
   }
-#ifdef KERNELIZE
-#pragma omp barrier
-#else
 #ifdef _NO_OMP_SINGLE
 #pragma omp barrier
 #endif // _NO_OMP_SINGLE
-#endif // KERNELIZE
   if(is_timer_enabled) {
     _COMLIB_SEND_WAIT_ALL_C_TOC_;
     _COMM_TOC_;

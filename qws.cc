@@ -168,15 +168,10 @@ extern "C"{
 
     void *tmp;
 
-#ifdef KERNELIZE
-    glus = global_glus;
-    clvs = global_clvs;
-#else
     posix_memalign(&tmp, CLS, sizeof(glus_t) * vols*NDIM*NEO);
     glus = (pglus_t)tmp;
     posix_memalign(&tmp, CLS, sizeof(clvs_t) * vols*NEO);
     clvs = (pclvs_t)tmp;
-#endif
     posix_memalign(&tmp, CLS, sizeof(scs_t)*vols);
     qs = (scs_t*)tmp;
     for(i=0; i<vols; i++){
@@ -311,7 +306,6 @@ extern "C"{
   }
 
   //---------------------------------------------------------------------------------------- for testing, not using
-#ifndef KERNELIZE
   void deo_test_(int* pe, int* po, scd_t* out, scd_t* in){
     __attribute__((aligned(64))) scd_t tmp;
     int x, y, z, t;
@@ -472,10 +466,8 @@ extern "C"{
 #endif
     if(rank==0)printf("%30s : %24.14e\n", a, rtmp0);
   }
-#endif
   //----------------------------------------------------------------------------------------
   //----------------------------------------------------------------------------------------
-#ifndef KERNELIZE
   void deo_in_vm_(int* pe, int* po, scd_t* out, scd_t* in);
   void dee_deo_in_vm_(int* pe, int* po, scd_t* out, scd_t* in);
   void deo_dag_in_vm_(int* pe, int* po, scd_t* out, scd_t* in);
@@ -576,14 +568,11 @@ extern "C"{
     one_minus_dee_deo_s_(pce, pco, out, tmp, in);
     free(tmp);
   }
-#endif
 
   //---------------------------------------------------------------------------------------- for DD solver
-#ifndef KERNELIZE
   void ddd_out_pre_d_(scd_t* in, int* domain);
   void ddd_out_pos_d_(scd_t* out, scd_t* in, int* domain);
   void ddd_in_d_(scd_t* out, scd_t* in, int* domain);
-#endif
 
   void ddd_out_pre_s_(scs_t* in, int* domain);
   void ddd_out_pre_s_noprl_(scs_t* in, int* domain);
@@ -598,7 +587,6 @@ extern "C"{
   int domain0 = 0;
   int domain1 = 1;
   //----------------------------------------------------------------------------------------
-#ifndef KERNELIZE
   void ddd_d_(scd_t* out, scd_t* in){
     ddd_out_pre_d_(in, &domain0);
     ddd_in_d_(     &out[vold*0], &in[vold*0], &domain0);
@@ -619,7 +607,6 @@ extern "C"{
     ddd_eo_s_(out, in, &domain_e);
     ddd_eo_s_(out, in, &domain_o);
   }
-#endif
   void jinv_ddd_in_s_(scs_t* x, scs_t* b, int *domain, int* maxiter);
   void jinv_ddd_in_s_noprl_(scs_t* x, scs_t* b, int *domain, int* maxiter);
   //----------------------------------------------------------------------------------------

@@ -197,11 +197,6 @@ typedef struct{
   int ey, ez, et;
 } block_map_t;
 
-#ifdef KERNELIZE
-extern scs_t bicgstab_precdd_s_b[];
-extern glus_t global_glus[];
-extern clvs_t global_clvs[];
-#endif
 
 #include "qws_xbound.h"
 
