@@ -56,6 +56,14 @@
 #include "addressing.hh"
 #include "prefetch.h"
 #include <omp.h>
+
+// for power API
+#include <stdio.h>
+#include <unistd.h>
+#include "pwr.h"
+// for power API end
+
+
 #undef _DEBUG_
 //#define _DEBUG_
 #undef _CHECK_
@@ -193,6 +201,34 @@ extern "C"{
     double err = 1.0e0;
     if (0==rank) printf("@@ %5d %12.7e\n",mult_count,err);
 #endif
+
+    // Power measurement set using Power API
+    PWR_Cntxt cntxt = NULL;
+    PWR_Obj obj = NULL;
+    int rc;
+    double energy1 = 0.0;
+    double energy2 = 0.0;
+    double ave_power = 0.0;
+    PWR_Time ts1 = 0;
+    PWR_Time ts2 = 0;
+    //rc = PWR_CntxtInit(PWR_CNTXT_DEFAULT, PWR_ROLE_APP, "app", &cntxt);
+    rc = PWR_CntxtInit(PWR_CNTXT_FX1000, PWR_ROLE_APP, "app", &cntxt);
+    if (rc != PWR_RET_SUCCESS) {
+      printf("CntxtInit Failed\n");
+      exit(1);
+    }
+    rc = PWR_CntxtGetObjByName(cntxt, "plat.node", &obj);
+    if (rc != PWR_RET_SUCCESS) {
+      printf("CntxtGetObjByName Failed\n");
+      exit(1);
+    }
+    //rc = PWR_ObjAttrGetValue(obj, PWR_ATTR_ENERGY, &energy1, &ts1);
+    rc = PWR_ObjAttrGetValue(obj, PWR_ATTR_MEASURED_ENERGY, &energy1, &ts1);
+    if (rc != PWR_RET_SUCCESS) {
+      printf("ObjAttrGetValue Failed (rc = %d)\n", rc);
+      exit(1);
+    }
+    // Power measurement set using Power API
 
     for (iter=0; iter<(*maxiter);iter++){
       _BCG_PRECDDS_ITER_TIC_;
@@ -543,6 +579,22 @@ extern "C"{
       }
       _BCG_PRECDDS_ITER_TOC_;
     }//iter
+
+    // Power measurement get using Power API
+    //rc = PWR_ObjAttrGetValue(obj, PWR_ATTR_ENERGY, &energy2, &ts2);
+    rc = PWR_ObjAttrGetValue(obj, PWR_ATTR_MEASURED_ENERGY, &energy2, &ts2);
+    if (rc != PWR_RET_SUCCESS) {
+      printf("ObjAttrGetValue Failed (rc = %d)\n", rc);
+      exit(1);
+    }
+    ave_power = (energy2 - energy1) / ((ts2 - ts1) / 1000000000.0);
+    printf("bicgstab_precdd_s_iter_ : ave_power = %lf\n", ave_power);
+    PWR_CntxtDestroy(cntxt);
+    // Power measurement get using Power API end
+
+
+
+
     *conviter = mult_count;
     //    *conviter = iter;
     _BCG_PRECDDS_TOC_;

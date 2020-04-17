@@ -51,15 +51,15 @@ debug     =
 mpi       =1
 omp       =1
 #compiler [openmpi-gnu, gnu, intel, fujitsu_native, fujitsu_cross]
-compiler  =intel
+compiler  =fujitsu_cross
 #arch [fx100, postk, skylake, ofp, thunderx2, simulator]
-arch      =skylake
+arch      =postk
 #profiler [timing, fapp, fpcoll, pa] (nondisclousure: timing2)
 profiler  =timing
 #timing2_path=$(HOME)/opt/timing2.o
 prof_selective=
 #target [jinv, in, pre, pos, other, all_calc, overlapped, send, send_post]
-target    =all_calc
+#target    =all_calc
 half_prec =
 #path to half precision library required in non clang mode
 #libhalf=$(HOME)/opt/half-1.12.0/include
@@ -178,7 +178,7 @@ else ifeq ($(compiler),fujitsu_cross)
   ifndef clang
     CFLAGS      = -Kfast,restp=all,optmsg=2,ocl,preex,noprefetch,noswp -Nline,lst=t
     CFLAGS      = -Kfast,restp=all,optmsg=2,ocl,preex,noprefetch,noswp -Nline,lst=t -Nfjomplib -Kilfunc=loop -Krdconv=2
-    CFLAGS      = -Kfast,restp=all,optmsg=2,ocl,preex,noprefetch,noswp -Nline,lst=t -Nnofjprof -Nfjomplib -Kilfunc=loop -Krdconv=2
+    CFLAGS      = -Kfast,restp=all,optmsg=2,ocl,preex,noprefetch,noswp -Nline,lst=t -Nnofjprof -Nfjomplib -Kilfunc=loop -Krdconv=2 -I/opt/FJSVtcs/pwrm/aarch64/include
     CXXFLAGS    = $(CFLAGS) -std=gnu++11
     CXXFLAGS_A  = $(CFLAGS) -std=gnu++11 -Knosch_pre_ra,nosch_post_ra -Knoeval
   else
@@ -188,7 +188,7 @@ else ifeq ($(compiler),fujitsu_cross)
     CXXFLAGS_A  = $(CFLAGS) -stdlib=libc++
   endif
   LDFLAGS     =
-  SYSLIBS     = -ltofucom
+  SYSLIBS     = -ltofucom  -L/opt/FJSVtcs/pwrm/aarch64/lib64 -lpwr
   ifdef omp
     CC       += -Kopenmp
     CXX      += -Kopenmp
@@ -219,7 +219,8 @@ else ifeq ($(arch),postk)
        vlend = 8
        vlens = 16
        ifndef clang
-       MYFLAGS += -DARCH_POSTK -DCOMPILE_TIME_DIM_SIZE -DNX=32 -DNY=6 -DNZ=4 -DNT=3 -DINLINE_ASM_UNAVAILABLE
+       MYFLAGS += -DARCH_POSTK
+# -DCOMPILE_TIME_DIM_SIZE -DNX=32 -DNY=6 -DNZ=4 -DNT=3 -DINLINE_ASM_UNAVAILABLE
        else
        MYFLAGS +=              -DCOMPILE_TIME_DIM_SIZE -DNX=32 -DNY=6 -DNZ=4 -DNT=3 -DINLINE_ASM_UNAVAILABLE
        endif
