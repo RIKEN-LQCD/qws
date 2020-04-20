@@ -447,47 +447,57 @@ extern "C"{
       }
 
       // |r|
+      // rho = <r0,r>
       rtmp0 = 0;
-#pragma omp parallel reduction(+:rtmp0)
+      rtmp1 = 0;
+      rtmp2 = 0;
+#pragma omp parallel reduction(+:rtmp0, rtmp1, rtmp2)
       {
         vecs_t v_rtmp0_0 = fdup_s(0);
         vecs_t v_rtmp0_1 = fdup_s(0);
         vecs_t v_rtmp0_2 = fdup_s(0);
-        vecs_t v_rtmp0_3 = fdup_s(0);
-        vecs_t v_rtmp0_4 = fdup_s(0);
-        vecs_t v_rtmp0_5 = fdup_s(0);
-        vecs_t v_rtmp0_6 = fdup_s(0);
-        vecs_t v_rtmp0_7 = fdup_s(0);
+        vecs_t v_rtmp1_0 = fdup_s(0);
+        vecs_t v_rtmp1_1 = fdup_s(0);
+        vecs_t v_rtmp1_2 = fdup_s(0);
+        vecs_t v_rtmp2_0 = fdup_s(0);
+        vecs_t v_rtmp2_1 = fdup_s(0);
+        vecs_t v_rtmp2_2 = fdup_s(0);
         pred_t pt = pred_true_all();
-        int start = vols*2/nthrd*tid;
-        int end   = vols*2/nthrd*(tid+1);
-        if(tid == nthrd-1) {
-          end = vols*2;
-        }
+        int start, end;
+        std::tie(start, end) = static_sched(vols*2, nthrd, tid);
         for(int i=start; i<end; i++){
+          __prefetch_inp(r0+i, 2);
           __prefetch_inp(r+i, 2);
-#define S(J, K) \
-          v_rtmp0_##K = fmadd_s(pt, fload1_s(pt, &r[i], dims_1d, J*8+K), fload1_s(pt, &r[i], dims_1d, J*8+K, 0), v_rtmp0_##K);
-          LOOP_3(LOOP_8, S);
+#define S(J, K)                                                         \
+          v_rtmp0_##K =  fmadd_s(pt, fload1_s(pt, &r[i], dims_cs, J*3+K, 0), fload1_s(pt, &r[i], dims_cs, J*3+K, 0), v_rtmp0_##K); \
+          v_rtmp0_##K =  fmadd_s(pt, fload1_s(pt, &r[i], dims_cs, J*3+K, 1), fload1_s(pt, &r[i], dims_cs, J*3+K, 1), v_rtmp0_##K); \
+          v_rtmp1_##K =  fmadd_s(pt, fload1_s(pt, &r0[i], dims_cs, J*3+K, 0), fload1_s(pt, &r[i], dims_cs, J*3+K, 0), v_rtmp1_##K); \
+          v_rtmp1_##K =  fmadd_s(pt, fload1_s(pt, &r0[i], dims_cs, J*3+K, 1), fload1_s(pt, &r[i], dims_cs, J*3+K, 1), v_rtmp1_##K); \
+          v_rtmp2_##K =  fmadd_s(pt, fload1_s(pt, &r0[i], dims_cs, J*3+K, 0), fload1_s(pt, &r[i], dims_cs, J*3+K, 1), v_rtmp2_##K); \
+          v_rtmp2_##K = fnmadd_s(pt, fload1_s(pt, &r0[i], dims_cs, J*3+K, 1), fload1_s(pt, &r[i], dims_cs, J*3+K, 0), v_rtmp2_##K);
+          LOOP_4(LOOP_3, S);
 #undef S
         }
         v_rtmp0_0 = fadd_s(pt, v_rtmp0_0, v_rtmp0_1);
-        v_rtmp0_2 = fadd_s(pt, v_rtmp0_2, v_rtmp0_3);
-        v_rtmp0_4 = fadd_s(pt, v_rtmp0_4, v_rtmp0_5);
-        v_rtmp0_6 = fadd_s(pt, v_rtmp0_6, v_rtmp0_7);
         v_rtmp0_0 = fadd_s(pt, v_rtmp0_0, v_rtmp0_2);
-        v_rtmp0_4 = fadd_s(pt, v_rtmp0_4, v_rtmp0_6);
-        v_rtmp0_0 = fadd_s(pt, v_rtmp0_0, v_rtmp0_4);
+        v_rtmp1_0 = fadd_s(pt, v_rtmp1_0, v_rtmp1_1);
+        v_rtmp1_0 = fadd_s(pt, v_rtmp1_0, v_rtmp1_2);
+        v_rtmp2_0 = fadd_s(pt, v_rtmp2_0, v_rtmp2_1);
+        v_rtmp2_0 = fadd_s(pt, v_rtmp2_0, v_rtmp2_2);
         rtmp0 = fsum_s(pt, v_rtmp0_0);
+        rtmp1 = fsum_s(pt, v_rtmp1_0);
+        rtmp2 = fsum_s(pt, v_rtmp2_0);
       }
       redu[0] = rtmp0;
+      redu[1] = rtmp1;
+      redu[2] = rtmp2;
 #ifdef _MPI_
-      _BCG_PRECDDS_ITER_REDUC1_TIC_;
-      MPI_Allreduce(MPI_IN_PLACE,(void *)redu,1,MPI_REAL,MPI_SUM,MPI_COMM_WORLD);
-      _BCG_PRECDDS_ITER_REDUC1_TOC_;
+      _BCG_PRECDDS_ITER_REDUC3_TIC_;
+      MPI_Allreduce(MPI_IN_PLACE,(void *)redu,3,MPI_REAL,MPI_SUM,MPI_COMM_WORLD);
+      _BCG_PRECDDS_ITER_REDUC3_TOC_;
 #endif
       rnorm = redu[0];
-
+      rho = complex<float>(redu[1],redu[2]);
       // Check
       //printf("iter = %d, rnorm = %24.14e, sqrt(rnorm/bnorm) = %24.14e\n", iter, rnorm, sqrt(rnorm/bnorm));
 #ifdef _DEBUG_
@@ -502,54 +512,8 @@ extern "C"{
 	_BCG_PRECDDS_ITER_TOC_;
 	break;
       }
-
-
-      // rho = <r0,r>
-      rtmp0 = 0;
-      rtmp1 = 0;
-#pragma omp parallel reduction(+:rtmp0, rtmp1)
-      {
-        vecs_t v_rtmp0_0 = fdup_s(0);
-        vecs_t v_rtmp0_1 = fdup_s(0);
-        vecs_t v_rtmp0_2 = fdup_s(0);
-        vecs_t v_rtmp0_3 = fdup_s(0);
-        vecs_t v_rtmp1_0 = fdup_s(0);
-        vecs_t v_rtmp1_1 = fdup_s(0);
-        vecs_t v_rtmp1_2 = fdup_s(0);
-        vecs_t v_rtmp1_3 = fdup_s(0);
-        pred_t pt = pred_true_all();
-        int start, end;
-        std::tie(start, end) = static_sched(vols*2, nthrd, tid);
-        for(int i=start; i<end; i++){
-          __prefetch_inp(r0+i, 2);
-          __prefetch_inp(r+i, 2);
-#define S(J, K)								\
-          v_rtmp0_##K =  fmadd_s(pt, fload1_s(pt, &r0[i], dims_cs, J*4+K, 0), fload1_s(pt, &r[i], dims_cs, J*4+K, 0), v_rtmp0_##K); \
-	  v_rtmp0_##K =  fmadd_s(pt, fload1_s(pt, &r0[i], dims_cs, J*4+K, 1), fload1_s(pt, &r[i], dims_cs, J*4+K, 1), v_rtmp0_##K); \
-	  v_rtmp1_##K =  fmadd_s(pt, fload1_s(pt, &r0[i], dims_cs, J*4+K, 0), fload1_s(pt, &r[i], dims_cs, J*4+K, 1), v_rtmp1_##K); \
-          v_rtmp1_##K = fnmadd_s(pt, fload1_s(pt, &r0[i], dims_cs, J*4+K, 1), fload1_s(pt, &r[i], dims_cs, J*4+K, 0), v_rtmp1_##K);
-          LOOP_3(LOOP_4, S);
-#undef S
-        }
-        v_rtmp0_0 = fadd_s(pt, v_rtmp0_0, v_rtmp0_1);
-        v_rtmp0_2 = fadd_s(pt, v_rtmp0_2, v_rtmp0_3);
-        v_rtmp0_0 = fadd_s(pt, v_rtmp0_0, v_rtmp0_2);
-        v_rtmp1_0 = fadd_s(pt, v_rtmp1_0, v_rtmp1_1);
-        v_rtmp1_2 = fadd_s(pt, v_rtmp1_2, v_rtmp1_3);
-        v_rtmp1_0 = fadd_s(pt, v_rtmp1_0, v_rtmp1_2);
-        rtmp0 = fsum_s(pt, v_rtmp0_0);
-        rtmp1 = fsum_s(pt, v_rtmp1_0);
-      }
-      redu[0] = rtmp0;
-      redu[1] = rtmp1;
-#ifdef _MPI_
-      _BCG_PRECDDS_ITER_REDUC2_TIC_;
-      MPI_Allreduce(MPI_IN_PLACE,(void *)redu,2,MPI_REAL,MPI_SUM,MPI_COMM_WORLD);
-      _BCG_PRECDDS_ITER_REDUC2_TOC_;
-#endif
-      rho = complex<float>(redu[0],redu[1]);
 #ifdef _CHECK_
-      printf("iter = %d, rho = %24.14e %24.14e\n", iter, redu[0], redu[1]);
+      printf("iter = %d, rho = %24.14e %24.14e\n", iter, redu[1], redu[2]);
 #endif
       beta = alpha*rho/( rho0 * omega);
       rho0 = rho;
