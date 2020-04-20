@@ -80,6 +80,14 @@ extern int prof_flag;
 # define _BCG_PRECDDS_ITER_REDUC2_TOC_ 
 # define _BCG_PRECDDS_ITER_REDUC3_TIC_
 # define _BCG_PRECDDS_ITER_REDUC3_TOC_ 
+# define _BCG_PRECDDS_ITER_BARRIER_BEFORE_REDUC1_TIC_
+# define _BCG_PRECDDS_ITER_BARRIER_BEFORE_REDUC1_TOC_ 
+# define _BCG_PRECDDS_ITER_BARRIER_BEFORE_REDUC2_TIC_
+# define _BCG_PRECDDS_ITER_BARRIER_BEFORE_REDUC2_TOC_ 
+# define _BCG_PRECDDS_ITER_BARRIER_BEFORE_REDUC3_1_TIC_
+# define _BCG_PRECDDS_ITER_BARRIER_BEFORE_REDUC3_1_TOC_ 
+# define _BCG_PRECDDS_ITER_BARRIER_BEFORE_REDUC3_2_TIC_
+# define _BCG_PRECDDS_ITER_BARRIER_BEFORE_REDUC3_2_TOC_ 
 # define _MCG_ITER_TIC_
 # define _MCG_ITER_TOC_ 
 # define _CG_ITER_TIC_
@@ -121,6 +129,7 @@ extern int prof_flag;
 # define _COMLIB_SEND_WAIT_ALL_C_TIC_
 # define _COMLIB_SEND_WAIT_ALL_C_TOC_
 
+# define TARGET_ALL        1
 # define TARGET_JINV       2
 # define TARGET_IN         3
 # define TARGET_PRE        4
@@ -130,7 +139,17 @@ extern int prof_flag;
 # define TARGET_OVERLAPPED 8
 # define TARGET_SEND       9
 # define TARGET_SEND_POST 10
-# if PROF_TARGET == TARGET_JINV
+# define TARGET_RECV      11
+# define TARGET_REDUC1    12
+# define TARGET_REDUC2    13
+# define TARGET_REDUC3    14
+
+# if PROF_TARGET == TARGET_ALL
+#  undef _BCG_PRECDDS_ITER_TIC_
+#  undef _BCG_PRECDDS_ITER_TOC_
+#  define _BCG_PRECDDS_ITER_TIC_                IF_PROF(PROF_START_SRL("all"))
+#  define _BCG_PRECDDS_ITER_TOC_                IF_PROF(PROF_STOP_SRL("all"))
+# elif PROF_TARGET == TARGET_JINV
 #  undef _JINV_DDD_IN_S_TIC_
 #  undef _JINV_DDD_IN_S_TOC_
 #  define _JINV_DDD_IN_S_TIC_                   IF_PROF(PROF_START_SRL("jinv"))
@@ -208,6 +227,11 @@ extern int prof_flag;
 #  undef _OVERLAPPED_CALC_TOC_
 #  define _OVERLAPPED_CALC_TIC_ IF_PROF(PROF_START_SRL("overlapped"))
 #  define _OVERLAPPED_CALC_TOC_ IF_PROF(PROF_STOP_SRL("overlapped"))
+# elif PROF_TARGET == TARGET_RECV
+#  undef _COMLIB_IRECV_ALL_C_TIC_
+#  undef _COMLIB_IRECV_ALL_C_TOC_
+#  define _COMLIB_IRECV_ALL_C_TIC_ IF_PROF(PROF_START_SRL("comlib_irecv_all_c"))
+#  define _COMLIB_IRECV_ALL_C_TOC_ IF_PROF(PROF_STOP_SRL("comlib_irecv_all_c"))
 # elif PROF_TARGET == TARGET_SEND
 #  undef _COMLIB_ISEND_ALL_C_TIC_
 #  undef _COMLIB_ISEND_ALL_C_TOC_
@@ -218,6 +242,21 @@ extern int prof_flag;
 #  undef _COMLIB_SEND_WAIT_ALL_C_TOC_
 #  define _COMLIB_SEND_WAIT_ALL_C_TIC_ IF_PROF(PROF_START_SRL("comlib_isend_wait_all_c"))
 #  define _COMLIB_SEND_WAIT_ALL_C_TOC_ IF_PROF(PROF_STOP_SRL("comlib_isend_wait_all_c"))
+# elif PROF_TARGET == TARGET_REDUC1
+#  undef _BCG_PRECDDS_ITER_REDUC1_TIC_
+#  undef _BCG_PRECDDS_ITER_REDUC1_TOC_
+#  define _BCG_PRECDDS_ITER_REDUC1_TIC_ IF_PROF(PROF_START_SRL("bicgstab_precdd_s_iter_reduc1_"))
+#  define _BCG_PRECDDS_ITER_REDUC1_TOC_ IF_PROF(PROF_STOP_SRL("bicgstab_precdd_s_iter_reduc1_"))
+# elif PROF_TARGET == TARGET_REDUC2
+#  undef _BCG_PRECDDS_ITER_REDUC2_TIC_
+#  undef _BCG_PRECDDS_ITER_REDUC2_TOC_
+#  define _BCG_PRECDDS_ITER_REDUC2_TIC_ IF_PROF(PROF_START_SRL("bicgstab_precdd_s_iter_reduc2_"))
+#  define _BCG_PRECDDS_ITER_REDUC2_TOC_ IF_PROF(PROF_STOP_SRL("bicgstab_precdd_s_iter_reduc2_"))
+# elif PROF_TARGET == TARGET_REDUC3
+#  undef _BCG_PRECDDS_ITER_REDUC3_TIC_
+#  undef _BCG_PRECDDS_ITER_REDUC3_TOC_
+#  define _BCG_PRECDDS_ITER_REDUC3_TIC_ IF_PROF(PROF_START_SRL("bicgstab_precdd_s_iter_reduc3_"))
+#  define _BCG_PRECDDS_ITER_REDUC3_TOC_ IF_PROF(PROF_STOP_SRL("bicgstab_precdd_s_iter_reduc3_"))
 # else
 
 #  error "invalid PROF_TARGET"
@@ -241,6 +280,14 @@ extern int prof_flag;
 # define _BCG_PRECDDS_ITER_REDUC2_TOC_          IF_PROF( PROF_STOP("bicgstab_precdd_s_iter_reduc2_"))
 # define _BCG_PRECDDS_ITER_REDUC3_TIC_          IF_PROF(PROF_START("bicgstab_precdd_s_iter_reduc3_"))
 # define _BCG_PRECDDS_ITER_REDUC3_TOC_          IF_PROF( PROF_STOP("bicgstab_precdd_s_iter_reduc3_"))
+# define _BCG_PRECDDS_ITER_BARRIER_BEFORE_REDUC1_TIC_   IF_PROF(PROF_START("bicgstab_precdd_s_iter_bar_reduc1_"))
+# define _BCG_PRECDDS_ITER_BARRIER_BEFORE_REDUC1_TOC_   IF_PROF( PROF_STOP("bicgstab_precdd_s_iter_bar_reduc1_"))
+# define _BCG_PRECDDS_ITER_BARRIER_BEFORE_REDUC2_TIC_   IF_PROF(PROF_START("bicgstab_precdd_s_iter_bar_reduc2_"))
+# define _BCG_PRECDDS_ITER_BARRIER_BEFORE_REDUC2_TOC_   IF_PROF( PROF_STOP("bicgstab_precdd_s_iter_bar_reduc2_"))
+# define _BCG_PRECDDS_ITER_BARRIER_BEFORE_REDUC3_1_TIC_ IF_PROF(PROF_START("bicgstab_precdd_s_iter_bar_reduc3_1_"))
+# define _BCG_PRECDDS_ITER_BARRIER_BEFORE_REDUC3_1_TOC_ IF_PROF( PROF_STOP("bicgstab_precdd_s_iter_bar_reduc3_1_"))
+# define _BCG_PRECDDS_ITER_BARRIER_BEFORE_REDUC3_2_TIC_ IF_PROF(PROF_START("bicgstab_precdd_s_iter_bar_reduc3_2_"))
+# define _BCG_PRECDDS_ITER_BARRIER_BEFORE_REDUC3_2_TOC_ IF_PROF( PROF_STOP("bicgstab_precdd_s_iter_bar_reduc3_2_"))
 # define _MCG_ITER_TIC_                         IF_PROF(PROF_START("mcg_iter_"))
 # define _MCG_ITER_TOC_                         IF_PROF( PROF_STOP("mcg_iter_"))
 # define _CG_ITER_TIC_                          IF_PROF(PROF_START("cg_iter_"))

@@ -202,6 +202,10 @@ extern "C"{
     if (0==rank) printf("@@ %5d %12.7e\n",mult_count,err);
 #endif
 
+
+#ifdef _MPI_
+    MPI_Barrier(MPI_COMM_WORLD);
+#endif
 #ifdef _POWER_API_
     // Power measurement set using Power API
     PWR_Cntxt cntxt = NULL;
@@ -278,6 +282,11 @@ extern "C"{
       redu[0] = rtmp0;
       redu[1] = rtmp1;
 #ifdef _MPI_
+#ifdef _MPI_BARRIER_BEFORE_REDUC_
+      _BCG_PRECDDS_ITER_BARRIER_BEFORE_REDUC2_TIC_;
+      MPI_Barrier(MPI_COMM_WORLD);
+      _BCG_PRECDDS_ITER_BARRIER_BEFORE_REDUC2_TOC_;
+#endif
       _BCG_PRECDDS_ITER_REDUC2_TIC_;
       MPI_Allreduce(MPI_IN_PLACE,(void *)redu,2,MPI_REAL,MPI_SUM,MPI_COMM_WORLD);
       _BCG_PRECDDS_ITER_REDUC2_TOC_;
@@ -344,6 +353,11 @@ extern "C"{
       }
       redu[0] = rtmp0;
 #ifdef _MPI_
+#ifdef _MPI_BARRIER_BEFORE_REDUC_
+      _BCG_PRECDDS_ITER_BARRIER_BEFORE_REDUC1_TIC_;
+      MPI_Barrier(MPI_COMM_WORLD);
+      _BCG_PRECDDS_ITER_BARRIER_BEFORE_REDUC1_TOC_;
+#endif
       _BCG_PRECDDS_ITER_REDUC1_TIC_;
       MPI_Allreduce(MPI_IN_PLACE,(void *)redu,1,MPI_REAL,MPI_SUM,MPI_COMM_WORLD);
       _BCG_PRECDDS_ITER_REDUC1_TOC_;
@@ -415,6 +429,11 @@ extern "C"{
       redu[1] = rtmp1;
       redu[2] = rtmp2;
 #ifdef _MPI_
+#ifdef _MPI_BARRIER_BEFORE_REDUC_
+      _BCG_PRECDDS_ITER_BARRIER_BEFORE_REDUC3_1_TIC_;
+      MPI_Barrier(MPI_COMM_WORLD);
+      _BCG_PRECDDS_ITER_BARRIER_BEFORE_REDUC3_1_TOC_;
+#endif
       _BCG_PRECDDS_ITER_REDUC3_TIC_;
       MPI_Allreduce(MPI_IN_PLACE,(void *)redu,3,MPI_REAL,MPI_SUM,MPI_COMM_WORLD);
       _BCG_PRECDDS_ITER_REDUC3_TOC_;
@@ -492,6 +511,11 @@ extern "C"{
       redu[1] = rtmp1;
       redu[2] = rtmp2;
 #ifdef _MPI_
+#ifdef _MPI_BARRIER_BEFORE_REDUC_
+      _BCG_PRECDDS_ITER_BARRIER_BEFORE_REDUC3_2_TIC_;
+      MPI_Barrier(MPI_COMM_WORLD);
+      _BCG_PRECDDS_ITER_BARRIER_BEFORE_REDUC3_2_TOC_;
+#endif
       _BCG_PRECDDS_ITER_REDUC3_TIC_;
       MPI_Allreduce(MPI_IN_PLACE,(void *)redu,3,MPI_REAL,MPI_SUM,MPI_COMM_WORLD);
       _BCG_PRECDDS_ITER_REDUC3_TOC_;

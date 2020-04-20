@@ -55,11 +55,11 @@ compiler  =fujitsu_cross
 #arch [fx100, postk, skylake, ofp, thunderx2, simulator]
 arch      =postk
 #profiler [timing, fapp, fpcoll, pa] (nondisclousure: timing2)
-profiler  =timing
-#timing2_path=$(HOME)/opt/timing2.o
+profiler  =timing2
+timing2_path=$(HOME)/opt/timing2.o
 prof_selective=
-#target [jinv, in, pre, pos, other, all_calc, overlapped, send, send_post]
-#target    =all_calc
+#target [jinv, in, pre, pos, other, all, all_calc, overlapped, send, send_post, recv, reduc1, reduc2, reduc3]
+target    =reduc3
 half_prec =
 #path to half precision library required in non clang mode
 #libhalf=$(HOME)/opt/half-1.12.0/include
@@ -69,7 +69,9 @@ rdma      =
 #clangmode : clang mode for fujitsu compiler
 clang     =
 #Power API : Power API for Fugaku and FX1000
-powerapi  =1
+powerapi  =
+#Barrier before Allreduce
+bar_reduc =
 #===============================================================================
 FPP       = cpp -C -P --sysroot=.
 ARFLAGS   = 
@@ -172,6 +174,9 @@ else ifeq ($(compiler),fujitsu_cross)
 #    MYFLAGS   = -D_MPI_  # without RDMA
 
     MYFLAGS    += -D_NO_OMP_SINGLE  # error avoiding
+    ifdef bar_reduc
+      MYFLAGS+= -D_MPI_BARRIER_BEFORE_REDUC_
+    endif
   else
     CC        = fccpx
     CXX       = FCCpx
@@ -347,6 +352,9 @@ ifdef strong_prefetch
   OBJS += $(objs_with_prefetch:.o=_strp.s)
 endif
 
+ifeq ($(target),all)
+  CFLAGS += -DPROF_TARGET=TARGET_ALL
+endif
 ifeq ($(target),jinv)
   CFLAGS += -DPROF_TARGET=TARGET_JINV
 endif
@@ -373,6 +381,18 @@ ifeq ($(target),send)
 endif
 ifeq ($(target),send_post)
   CFLAGS += -DPROF_TARGET=TARGET_SEND_POST
+endif
+ifeq ($(target),recv)
+  CFLAGS += -DPROF_TARGET=TARGET_RECV
+endif
+ifeq ($(target),reduc1)
+  CFLAGS += -DPROF_TARGET=TARGET_REDUC1
+endif
+ifeq ($(target),reduc2)
+  CFLAGS += -DPROF_TARGET=TARGET_REDUC2
+endif
+ifeq ($(target),reduc3)
+  CFLAGS += -DPROF_TARGET=TARGET_REDUC3
 endif
 
 ifeq ($(profiler),timing)
