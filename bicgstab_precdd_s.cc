@@ -202,6 +202,7 @@ extern "C"{
     if (0==rank) printf("@@ %5d %12.7e\n",mult_count,err);
 #endif
 
+#ifdef _POWER_API_
     // Power measurement set using Power API
     PWR_Cntxt cntxt = NULL;
     PWR_Obj obj = NULL;
@@ -229,6 +230,7 @@ extern "C"{
       exit(1);
     }
     // Power measurement set using Power API
+#endif //_POWER_API_
 
     for (iter=0; iter<(*maxiter);iter++){
       _BCG_PRECDDS_ITER_TIC_;
@@ -580,6 +582,7 @@ extern "C"{
       _BCG_PRECDDS_ITER_TOC_;
     }//iter
 
+#ifdef _POWER_API_
     // Power measurement get using Power API
     //rc = PWR_ObjAttrGetValue(obj, PWR_ATTR_ENERGY, &energy2, &ts2);
     rc = PWR_ObjAttrGetValue(obj, PWR_ATTR_MEASURED_ENERGY, &energy2, &ts2);
@@ -591,7 +594,7 @@ extern "C"{
     printf("bicgstab_precdd_s_iter_ : ave_power = %lf\n", ave_power);
     PWR_CntxtDestroy(cntxt);
     // Power measurement get using Power API end
-
+#endif //_POWER_API_
 
 
 

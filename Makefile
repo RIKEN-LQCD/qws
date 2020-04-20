@@ -68,6 +68,8 @@ PREFIX    =.
 rdma      =
 #clangmode : clang mode for fujitsu compiler
 clang     =
+#Power API : Power API for Fugaku and FX1000
+powerapi  =1
 #===============================================================================
 FPP       = cpp -C -P --sysroot=.
 ARFLAGS   = 
@@ -178,7 +180,7 @@ else ifeq ($(compiler),fujitsu_cross)
   ifndef clang
     CFLAGS      = -Kfast,restp=all,optmsg=2,ocl,preex,noprefetch,noswp -Nline,lst=t
     CFLAGS      = -Kfast,restp=all,optmsg=2,ocl,preex,noprefetch,noswp -Nline,lst=t -Nfjomplib -Kilfunc=loop -Krdconv=2
-    CFLAGS      = -Kfast,restp=all,optmsg=2,ocl,preex,noprefetch,noswp -Nline,lst=t -Nnofjprof -Nfjomplib -Kilfunc=loop -Krdconv=2 -I/opt/FJSVtcs/pwrm/aarch64/include
+    CFLAGS      = -Kfast,restp=all,optmsg=2,ocl,preex,noprefetch,noswp -Nline,lst=t -Nnofjprof -Nfjomplib -Kilfunc=loop -Krdconv=2
     CXXFLAGS    = $(CFLAGS) -std=gnu++11
     CXXFLAGS_A  = $(CFLAGS) -std=gnu++11 -Knosch_pre_ra,nosch_post_ra -Knoeval
   else
@@ -188,7 +190,15 @@ else ifeq ($(compiler),fujitsu_cross)
     CXXFLAGS_A  = $(CFLAGS) -stdlib=libc++
   endif
   LDFLAGS     =
-  SYSLIBS     = -ltofucom  -L/opt/FJSVtcs/pwrm/aarch64/lib64 -lpwr
+  SYSLIBS     = -ltofucom
+  ifdef powerapi
+    MYFLAGS    += -D_POWER_API_
+    CFLAGS     += -I/opt/FJSVtcs/pwrm/aarch64/include
+    CFLAGS_A   += -I/opt/FJSVtcs/pwrm/aarch64/include
+    CXXFLAGS   += -I/opt/FJSVtcs/pwrm/aarch64/include
+    CXXFLAGS_A += -I/opt/FJSVtcs/pwrm/aarch64/include
+    SYSLIBS    += -L/opt/FJSVtcs/pwrm/aarch64/lib64 -lpwr
+  endif
   ifdef omp
     CC       += -Kopenmp
     CXX      += -Kopenmp
