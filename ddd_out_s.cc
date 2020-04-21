@@ -328,6 +328,7 @@ static inline void ddd_out_pre_s_noprl(scs_t* __restrict__  in, int* __restrict_
     _COMLIB_ISEND_ALL_C_TOC_;
     _COMM_TOC_;
     _OVERLAPPED_CALC_TIC_;
+    _COMLIB_IRECV_ALL_C_TIC_;
   }
 }
 
@@ -389,6 +390,7 @@ static inline void ddd_out_pos_s_noprl(scs_t* __restrict__ out, scs_t* __restric
 #endif // _NO_OMP_SINGLE
 #endif // _THREADED_RDMA
   if(is_timer_enabled) {
+    _COMLIB_IRECV_ALL_C_TOC_;
     _COMM_TOC_;
     _S_MULT_WD_DEO_OUT_RECV_HPC_CALC_TIC_;
   }

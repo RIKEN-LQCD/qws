@@ -124,6 +124,8 @@ extern int prof_flag;
 # define _OTHER_CALC_TOC_
 # define _OVERLAPPED_CALC_TIC_
 # define _OVERLAPPED_CALC_TOC_
+# define _COMLIB_IRECV_ALL_C_TIC_
+# define _COMLIB_IRECV_ALL_C_TOC_
 # define _COMLIB_ISEND_ALL_C_TIC_
 # define _COMLIB_ISEND_ALL_C_TOC_
 # define _COMLIB_SEND_WAIT_ALL_C_TIC_
@@ -324,6 +326,8 @@ extern int prof_flag;
 # define _COMM_TOC_
 # define _OVERLAPPED_CALC_TIC_
 # define _OVERLAPPED_CALC_TOC_
+# define _COMLIB_IRECV_ALL_C_TIC_
+# define _COMLIB_IRECV_ALL_C_TOC_
 # define _COMLIB_ISEND_ALL_C_TIC_
 # define _COMLIB_ISEND_ALL_C_TOC_
 # define _COMLIB_SEND_WAIT_ALL_C_TIC_
