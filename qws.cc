@@ -121,8 +121,12 @@ extern "C"{
   block_map_t* block_map;
   int num_blocks;
 
-
-  //---------------------------------------------------------------------------------------- init
+  FILE *para_outputfile;
+#ifdef _POWER_API_
+  extern void power_api_init();
+  extern void power_api_finalize();
+#endif
+  //---------------------------------------------------------------------------------------- qws init
   void qws_init_(int* lx,  int* ly, int* lz, int* lt, 
 		 int* npe_f, int* fbc_f, int* pce_f, int* pco_f, int* block_size){
 
@@ -292,7 +296,16 @@ extern "C"{
       fbc[3][0]=(double)2;
       fbc[3][1]=(double)2;
     }
+
+
+    char filename[21];
+    sprintf(filename, "output_rank%06d.txt", rank);
+    para_outputfile = fopen(filename, "w");
+#ifdef _POWER_API_
+    power_api_init();
+#endif
   }
+  //---------------------------------------------------------------------------------------- qws init end
 
   void qws_finalize_() {
 
@@ -303,6 +316,10 @@ extern "C"{
     if(clvd) free(clvd);
     if(clvs) free(clvs);
 
+#ifdef _POWER_API_
+    power_api_finalize();
+#endif
+    fclose(para_outputfile);
   }
 
   //---------------------------------------------------------------------------------------- for testing, not using

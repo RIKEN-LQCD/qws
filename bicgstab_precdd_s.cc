@@ -83,6 +83,10 @@ extern "C"{
 #include "timing.h"
   //  extern void check_timing_ (const char *);
 
+#ifdef _POWER_API_
+  extern void power_measure_power();
+#endif
+
   void bicgstab_precdd_s_(scs_t* x, scs_t* b, double* tol, int* conviter, int* maxiter, int* nsap, int* nm){
     __attribute__((aligned(64))) static scs_t *q, *r, *p , *t, *r0;
     if(q==0) {
@@ -206,34 +210,9 @@ extern "C"{
 #ifdef _MPI_
     MPI_Barrier(MPI_COMM_WORLD);
 #endif
+
 #ifdef _POWER_API_
-    // Power measurement set using Power API
-    PWR_Cntxt cntxt = NULL;
-    PWR_Obj obj = NULL;
-    int rc;
-    double energy1 = 0.0;
-    double energy2 = 0.0;
-    double ave_power = 0.0;
-    PWR_Time ts1 = 0;
-    PWR_Time ts2 = 0;
-    //rc = PWR_CntxtInit(PWR_CNTXT_DEFAULT, PWR_ROLE_APP, "app", &cntxt);
-    rc = PWR_CntxtInit(PWR_CNTXT_FX1000, PWR_ROLE_APP, "app", &cntxt);
-    if (rc != PWR_RET_SUCCESS) {
-      printf("CntxtInit Failed\n");
-      exit(1);
-    }
-    rc = PWR_CntxtGetObjByName(cntxt, "plat.node", &obj);
-    if (rc != PWR_RET_SUCCESS) {
-      printf("CntxtGetObjByName Failed\n");
-      exit(1);
-    }
-    //rc = PWR_ObjAttrGetValue(obj, PWR_ATTR_ENERGY, &energy1, &ts1);
-    rc = PWR_ObjAttrGetValue(obj, PWR_ATTR_MEASURED_ENERGY, &energy1, &ts1);
-    if (rc != PWR_RET_SUCCESS) {
-      printf("ObjAttrGetValue Failed (rc = %d)\n", rc);
-      exit(1);
-    }
-    // Power measurement set using Power API
+    power_measure_power();
 #endif //_POWER_API_
 
     for (iter=0; iter<(*maxiter);iter++){
@@ -571,17 +550,7 @@ extern "C"{
     }//iter
 
 #ifdef _POWER_API_
-    // Power measurement get using Power API
-    //rc = PWR_ObjAttrGetValue(obj, PWR_ATTR_ENERGY, &energy2, &ts2);
-    rc = PWR_ObjAttrGetValue(obj, PWR_ATTR_MEASURED_ENERGY, &energy2, &ts2);
-    if (rc != PWR_RET_SUCCESS) {
-      printf("ObjAttrGetValue Failed (rc = %d)\n", rc);
-      exit(1);
-    }
-    ave_power = (energy2 - energy1) / ((ts2 - ts1) / 1000000000.0);
-    printf("bicgstab_precdd_s_iter_ : ave_power = %lf\n", ave_power);
-    PWR_CntxtDestroy(cntxt);
-    // Power measurement get using Power API end
+    power_measure_power();
 #endif //_POWER_API_
 
 

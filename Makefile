@@ -56,10 +56,10 @@ compiler  =fujitsu_cross
 arch      =postk
 #profiler [timing, fapp, fpcoll, pa] (nondisclousure: timing2)
 profiler  =timing2
-timing2_path=$(HOME)/opt/timing2.o
+timing2_path=/home/g9300001/u93022/opt/timing2_para.o
 prof_selective=
 #target [jinv, in, pre, pos, other, all, all_calc, overlapped, send, send_post, recv, reduc1, reduc2, reduc3]
-target    =reduc3
+target    =all
 half_prec =
 #path to half precision library required in non clang mode
 #libhalf=$(HOME)/opt/half-1.12.0/include
@@ -69,7 +69,7 @@ rdma      =
 #clangmode : clang mode for fujitsu compiler
 clang     =
 #Power API : Power API for Fugaku and FX1000
-powerapi  =
+powerapi  =1
 #Barrier before Allreduce
 bar_reduc =
 #===============================================================================
@@ -334,6 +334,10 @@ OBJS := \
 	util.o \
 
 MAIN = main.o
+
+ifdef powerapi
+OBJS += power.o
+endif
 
 ifdef kernelize
   OBJS := \

@@ -129,9 +129,6 @@ int main( int argc, char *argv[] ){
 #ifdef _MPI_
   MPI_Init(&argc, &argv);
 #endif
-  //#ifdef _CHECK_PA
-  PROF_INIT;
-  //#endif
   int i, j;
 
   int lx=atoi(argv[1]);
@@ -166,6 +163,9 @@ int main( int argc, char *argv[] ){
   block_size[3]=2;
   
   qws_init_(&lx, &ly, &lz, &lt, npe_f, fbc_f, &pce_f, &pco_f, block_size);
+  //#ifdef _CHECK_PA
+  PROF_INIT;
+  //#endif
 
   kappa = (double)0.05;
   kappa2 = kappa * kappa;
