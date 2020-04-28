@@ -115,6 +115,11 @@ extern "C"{
 
   int rankmap_id;
 
+  projscd1_t *xfd_send0;
+  projscd1_t *xfd_recv0;
+  projscd1_t *xbd_send0;
+  projscd1_t *xbd_recv0;
+
   void xbound_set_parity(int parity, int prec){
     if(prec == 8){
       return;
@@ -240,21 +245,25 @@ extern "C"{
     zbd_recv = (projscd_t*)malloc( sizeof(projscd_t) * nxd*ny*nt);
     tfd_recv = (projscd_t*)malloc( sizeof(projscd_t) * nxd*ny*nz);
     tbd_recv = (projscd_t*)malloc( sizeof(projscd_t) * nxd*ny*nz);
+    xfd_send0 = xfd_send;
+    xbd_send0 = xbd_send;
+    xfd_recv0 = xfd_recv;
+    xbd_recv0 = xbd_recv;
 
     // allocate communication buffers (single prec.)
     // no manual allcoation is needed for RDMA
 
     // initializing communications: double prec.
-    MPI_Send_init(xfd_send, 12*ny *nz*nt, MPI_DOUBLE_PRECISION, pxb, 0, MPI_COMM_WORLD, &sd_req[0]);
-    MPI_Send_init(xbd_send, 12*ny *nz*nt, MPI_DOUBLE_PRECISION, pxf, 1, MPI_COMM_WORLD, &sd_req[1]);
+    MPI_Send_init(xfd_send0, 12*ny *nz*nt, MPI_DOUBLE_PRECISION, pxb, 0, MPI_COMM_WORLD, &sd_req[0]);
+    MPI_Send_init(xbd_send0, 12*ny *nz*nt, MPI_DOUBLE_PRECISION, pxf, 1, MPI_COMM_WORLD, &sd_req[1]);
     MPI_Send_init(yfd_send, 12*nxh*nz*nt, MPI_DOUBLE_PRECISION, pyb, 2, MPI_COMM_WORLD, &sd_req[2]);
     MPI_Send_init(ybd_send, 12*nxh*nz*nt, MPI_DOUBLE_PRECISION, pyf, 3, MPI_COMM_WORLD, &sd_req[3]);
     MPI_Send_init(zfd_send, 12*nxh*ny*nt, MPI_DOUBLE_PRECISION, pzb, 4, MPI_COMM_WORLD, &sd_req[4]);
     MPI_Send_init(zbd_send, 12*nxh*ny*nt, MPI_DOUBLE_PRECISION, pzf, 5, MPI_COMM_WORLD, &sd_req[5]);
     MPI_Send_init(tfd_send, 12*nxh*ny*nz, MPI_DOUBLE_PRECISION, ptb, 6, MPI_COMM_WORLD, &sd_req[6]);
     MPI_Send_init(tbd_send, 12*nxh*ny*nz, MPI_DOUBLE_PRECISION, ptf, 7, MPI_COMM_WORLD, &sd_req[7]);
-    MPI_Recv_init(xfd_recv, 12*ny *nz*nt, MPI_DOUBLE_PRECISION, pxf, 0, MPI_COMM_WORLD, &rd_req[0]);
-    MPI_Recv_init(xbd_recv, 12*ny *nz*nt, MPI_DOUBLE_PRECISION, pxb, 1, MPI_COMM_WORLD, &rd_req[1]);
+    MPI_Recv_init(xfd_recv0, 12*ny *nz*nt, MPI_DOUBLE_PRECISION, pxf, 0, MPI_COMM_WORLD, &rd_req[0]);
+    MPI_Recv_init(xbd_recv0, 12*ny *nz*nt, MPI_DOUBLE_PRECISION, pxb, 1, MPI_COMM_WORLD, &rd_req[1]);
     MPI_Recv_init(yfd_recv, 12*nxh*nz*nt, MPI_DOUBLE_PRECISION, pyf, 2, MPI_COMM_WORLD, &rd_req[2]);
     MPI_Recv_init(ybd_recv, 12*nxh*nz*nt, MPI_DOUBLE_PRECISION, pyb, 3, MPI_COMM_WORLD, &rd_req[3]);
     MPI_Recv_init(zfd_recv, 12*nxh*ny*nt, MPI_DOUBLE_PRECISION, pzf, 4, MPI_COMM_WORLD, &rd_req[4]);
@@ -532,8 +541,18 @@ extern "C"{
   }
 
   void xbound_recv_okall(int prec) {
-    for(int dir=0; dir<8; dir++){
-      buff_rdma[dir].irecv_ok();
+    if(prec==4){
+      for(int dir=0; dir<8; dir++){
+	buff_rdma[dir].irecv_ok();
+      }
+      // reset the send buffers: might be pointing to the rbuff
+      xfs_send=(projscs1_t*)buff_rdma[0].sbuff();
+      xbs_send=(projscs1_t*)buff_rdma[1].sbuff();
+    } else {
+      xfd_send = xfd_send0;
+      xfd_recv = xfd_recv0;
+      xbd_send = xbd_send0;
+      xbd_recv = xbd_recv0;
     }
   }
 
