@@ -78,7 +78,7 @@ extern "C"{
   void xbound(int req, int prec);
   void xbound_wait(int req, int prec);
   void xbound_send_waitall(int prec);
-  void xbound_recv_okall(int prec);
+  void xbound_recv_updateall(int prec);
 
   //---------------------------------------------------------------------------------------- preprocess mult D for boundary
   void ddd_out_pre_d_(scd_t* in, int* idomain){
@@ -94,6 +94,7 @@ extern "C"{
 #pragma omp single nowait
 #endif // _NO_OMP_SINGLE
     {
+      xbound_recv_updateall(8); // make sure pointers point the correct buffer
       if (*idomain == 0) {
 	xbound_start(1,8);
       } else {
@@ -143,15 +144,11 @@ extern "C"{
     {
       if (*idomain == 0) {
 	// memcpy(xfd_recv, xfd_send, sizeof(double)*12*ny*nz*nt);
-	projscd1_t *tmp = xfd_recv;
 	xfd_recv = xfd_send;
-	xfd_send = tmp;
 	xbound(1,8);
       } else {
 	//memcpy(xbd_recv, xbd_send, sizeof(double)*12*ny*nz*nt);
-	projscd1_t *tmp = xbd_recv;
 	xbd_recv = xbd_send;
-	xbd_send = tmp;
 	xbound(0,8);
       }
       xbound(2,8);
@@ -231,7 +228,6 @@ extern "C"{
 #endif // _NO_OMP_SINGLE
     {
       xbound_send_waitall(8);
-      xbound_recv_okall(8);
     }
 #ifdef _NO_OMP_SINGLE
 #pragma omp barrier
