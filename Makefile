@@ -441,11 +441,11 @@ endif
 
 ifdef FFLAGS
 fast:
-	make main
-	make libqws.a
+	$(MAKE) main
+	$(MAKE) libqws.a
 else
 fast:
-	make main
+	$(MAKE) main
 endif
 
 DELIVERABLES=main libqws.a
