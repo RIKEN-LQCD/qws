@@ -105,6 +105,7 @@ extern "C" void bicgstab_dd_mix2_hf_(scd_t *x, const scd_t *b, const double *tol
 
 extern "C" void ddd_d_(scd_t* x, scd_t* b);
 
+extern "C" double get_clock (void);
 extern "C" void print_timing_(void);
 
 extern "C" void print_scdnorm2(const char* a, scd_t* in, int size);
@@ -202,7 +203,15 @@ int main( int argc, char *argv[] ){
   int maxiter, iter;
   maxiter =100;
   //  zero_scd_field(x, vold);
+#ifdef _MPI_
+  MPI_Barrier(MPI_COMM_WORLD);
+#endif
+  double start_time=get_clock();
   bicgstab_vm_(x, b, &iter, &maxiter);
+#ifdef _MPI_
+  MPI_Barrier(MPI_COMM_WORLD);
+#endif
+  double end_time=get_clock();
   mtilde_vm_(r, x);
   rvecd_t rvd0, rvd1, rvd2, tmp;
   double redu[3];
@@ -231,6 +240,7 @@ int main( int argc, char *argv[] ){
   if(rank==0)printf("rnorm^2     = %24.14e\n",redu[1]);
   if(rank==0)printf("xnorm^2     = %24.14e\n",redu[2]);
   if(rank==0)printf("rnorm/bnorm = %24.14e\n",sqrt(redu[1]/redu[0]));
+  if(rank==0)printf("etime for sovler = %24.14e sec.\n", end_time-start_time);
   }
   rvecd_t rvd0, rvd1, rvd2, tmp;
   double redu[3];
@@ -262,7 +272,15 @@ int main( int argc, char *argv[] ){
       for(int v=0; v<VLEND; v++)
         xx[i].ccs[j].v[v] = x[i].ccs[j].v[v];
 
+#ifdef _MPI_
+  MPI_Barrier(MPI_COMM_WORLD);
+#endif
+  double start_time=get_clock();
   bicgstab_dd_mix_(x, b, &tol, &iter, &maxiter, &tol_s, &maxiter_s, &nsap, &nm);
+#ifdef _MPI_
+  MPI_Barrier(MPI_COMM_WORLD);
+#endif
+  double end_time=get_clock();
 
   ddd_d_(r, x);
   rtmp0 = 0;
@@ -290,6 +308,7 @@ int main( int argc, char *argv[] ){
   if(rank==0)printf("rnorm^2     = %24.14e\n",redu[1]);
   if(rank==0)printf("xnorm^2     = %24.14e\n",redu[2]);
   if(rank==0)printf("rnorm/bnorm = %24.14e\n",sqrt(redu[1]/redu[0]));
+  if(rank==0)printf("etime for sovler = %24.14e sec.\n", end_time-start_time);
   // ------------------------- LDDHMC solver End
  
 
@@ -310,9 +329,15 @@ int main( int argc, char *argv[] ){
         x[i].ccs[j].v[v] = xx[i].ccs[j].v[v];
   free(xx);
 
+#ifdef _MPI_
+  MPI_Barrier(MPI_COMM_WORLD);
+#endif
+  start_time=get_clock();
   bicgstab_dd_mix2_hf_(x, b, &tol, &iter, &maxiter, &tol_s, &maxiter_s, &nsap, &nm);
-
-
+#ifdef _MPI_
+  MPI_Barrier(MPI_COMM_WORLD);
+#endif
+  double end_time=get_clock();
 
 
   ddd_d_(r, x);
@@ -341,6 +366,7 @@ int main( int argc, char *argv[] ){
   if(rank==0)printf("rnorm^2     = %24.14e\n",redu[1]);
   if(rank==0)printf("xnorm^2     = %24.14e\n",redu[2]);
   if(rank==0)printf("rnorm/bnorm = %24.14e\n",sqrt(redu[1]/redu[0]));
+  if(rank==0)printf("etime for sovler = %24.14e sec.\n", end_time-start_time);
   ///////////////////////////////////
   // test half precision end
   ///////////////////////////////////
