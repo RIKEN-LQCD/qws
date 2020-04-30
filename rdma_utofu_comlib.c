@@ -156,17 +156,17 @@
 
 //#define  _RDMA_DEBUG
 //#define RDMA_NO_REMOTE_MRQ_POLLING
+#define RDMA_USE_CACHE_INJECTION
 
 const int MAXNUM_TNIID = 6;             //  Maximum nuber of TNI ID
 const int MAX_RDMA_DATASIZE = 16777212; //  RDMA put/get MAX data size in byte
 const int MAXNUM_TAG   = 255;            //  RDMA put/get MAX number of message tag
 const int TAG_OFFSET   = 128;            //  offset for the message tag
-//const int LAST_COMPONENT  = 0xDEADBEEF;  //  watchdog data for receive data polling.
 const int MAX_LAST_COMPONENT  = 256;  //  maximum value of the watchdog data for receive data polling.
 
 static int m_rdma_comlib_is_initialized = 0;
 static int m_rdma_comlib_myrank = 0; // MPI LOCAL RANK is stored.
-static int m_rdma_comlib_tag = 128;    // counts RDMA message tag. [0..15]
+static int m_rdma_comlib_tag = 128;    // counts RDMA message tag. [0..127] + TAG_OFFSET
 
 #include "rdma_utofu_comlib.h"
 
@@ -680,16 +680,21 @@ void rdma_comlib_isendrecv(rdma_comlib_data *id)
   //
   // Start data send
   //
-
 #ifdef RDMA_NO_REMOTE_MRQ_POLLING
-  const unsigned long int send_flags
-    = UTOFU_ONESIDED_FLAG_TCQ_NOTICE | UTOFU_ONESIDED_FLAG_STRONG_ORDER;
+  const unsigned long int mrq_flag=0UL;
 #else
-  const unsigned long int send_flags
-    = UTOFU_ONESIDED_FLAG_TCQ_NOTICE | UTOFU_ONESIDED_FLAG_STRONG_ORDER
-    |  UTOFU_ONESIDED_FLAG_REMOTE_MRQ_NOTICE;
+  const unsigned long int mrq_flag
+    = UTOFU_ONESIDED_FLAG_REMOTE_MRQ_NOTICE;
   //  UTOFU_ONESIDED_FLAG_LOCAL_MRQ_NOTICE |
 #endif
+#ifdef RDMA_USE_CACHE_INJECTION
+  const unsigned long int cache_injection_flag=UTOFU_ONESIDED_FLAG_CACHE_INJECTION;
+#else
+  const unsigned long int cache_injection_flag=0UL;
+#endif
+  const unsigned long int send_flags
+    = UTOFU_ONESIDED_FLAG_TCQ_NOTICE | UTOFU_ONESIDED_FLAG_STRONG_ORDER
+    | mrq_flag | cache_injection_flag;
 
   uint64_t edata=0;    // for mrq polling; the value is not used
   uintptr_t cbvalue=0; // for tcq polling; the value is not used
