@@ -21,62 +21,66 @@ test_double_prec_functions
                     mtilde_vm_ :     9.21536389128689e+04
                 mtilde_dag_vm_ :     9.27057494627475e+04
                    mtdagmt_vm_ :     2.96413360682115e+05
-            ddd_out_pre|pos_d_ :     7.29220254697120e+03
-                     ddd_in_d_ :     9.21756006623673e+04
+            ddd_out_pre|pos_d_ :     7.29220254697121e+03
+                     ddd_in_d_ :     9.21756006623672e+04
                         ddd_d_ :     1.99314966496993e+05
 test_single_prec_functions
                          input :     1.11043796875000e+05
                      deo_in_s_ :     3.51975150000000e+06
-                 dee_deo_in_s_ :     1.48617880000000e+07
-       one_minus_dee_deo_in_s_ :     5.56391992187500e+04
-            deo_out_pre|pos_s_ :     4.11450242996216e+00
+                 dee_deo_in_s_ :     1.48617870000000e+07
+       one_minus_dee_deo_in_s_ :     5.56392031250000e+04
+            deo_out_pre|pos_s_ :     4.11450290679932e+00
         dee_deo_out_pre|pos_s_ :     1.73445243835449e+01
-                        clv_s_ :     2.34584062500000e+05
-                        deo_s_ :     4.17966900000000e+06
+                        clv_s_ :     2.34584031250000e+05
+                        deo_s_ :     4.17966850000000e+06
                     dee_deo_s_ :     1.76267220000000e+07
-          one_minus_dee_deo_s_ :     5.56471367187500e+04
-                     mtilde_s_ :     9.21536328125000e+04
-            ddd_out_pre|pos_s_ :     7.32503759765625e+03
-                     ddd_in_s_ :     9.21756093750000e+04
-                        ddd_s_ :     1.99314953125000e+05
+          one_minus_dee_deo_s_ :     5.56471406250000e+04
+                     mtilde_s_ :     9.21536406250000e+04
+            ddd_out_pre|pos_s_ :     7.32503710937500e+03
+                     ddd_in_s_ :     9.21756015625000e+04
+                        ddd_s_ :     1.99314984375000e+05
 test bicgstab for double precision mtilde
 bnorm^2     =     5.55219554308135e+04
-rnorm^2     =     5.72972249653038e-24
+rnorm^2     =     5.66574780881407e-24
 xnorm^2     =     1.69395547235588e+05
-rnorm/bnorm =     1.01586130435337e-14
+rnorm/bnorm =     1.01017413207457e-14
 
 
 LDDHMC solver with Jacobi method instead of SSOR
-iter = 1, rnorm =     2.02513713968834e-07, sqrt(rnorm/bnorm) =     1.35045488347643e-06, xnorm =     6.51762033781968e+05
-iter = 1, rnorm =     8.72488499230600e-20, sqrt(rnorm/bnorm) =     8.86406058944482e-13, xnorm =     6.51761933158471e+05
-iter = 2, rnorm =     2.24804616661969e-31, sqrt(rnorm/bnorm) =     1.42283805874252e-18, xnorm =     6.51761933158479e+05
-iter = 2, rnorm =     1.01733298290738e-43, sqrt(rnorm/bnorm) =     9.57159739800575e-25, xnorm =     6.51761933158479e+05
-iter = 3, rnorm =     2.83792988569856e-55, sqrt(rnorm/bnorm) =     1.59865110146389e-30, xnorm =     6.51761933158479e+05
-iter = 3, rnorm =     1.30633834308980e-67, sqrt(rnorm/bnorm) =     1.08462771510356e-36, xnorm =     6.51761933158479e+05
-iter = 4, rnorm =     1.97691087804748e-79, sqrt(rnorm/bnorm) =     1.33427824809803e-42, xnorm =     6.51761933158479e+05
-iter = 4, rnorm =     9.19793760377615e-92, sqrt(rnorm/bnorm) =     9.10118809455888e-49, xnorm =     6.51761933158479e+05
-iter = 5, rnorm =    2.78207654068441e-103, sqrt(rnorm/bnorm) =     1.58284138772219e-54, xnorm =     6.51761933158479e+05
-iter = 5, rnorm =    1.32971252234848e-115, sqrt(rnorm/bnorm) =     1.09428825967074e-60, xnorm =     6.51761933158479e+05
+iter = 1, rnorm =     1.99020587663913e-07, sqrt(rnorm/bnorm) =     1.33875733281692e-06, xnorm =     6.51762027977280e+05
+iter = 1, rnorm =     8.05817161754505e-20, sqrt(rnorm/bnorm) =     8.51865670172920e-13, xnorm =     6.51761933158473e+05
+iter = 2, rnorm =     2.60620624359003e-30, sqrt(rnorm/bnorm) =     4.84459248231680e-18, xnorm =     6.51761933158479e+05
+iter = 2, rnorm =     1.13267484876184e-42, sqrt(rnorm/bnorm) =     3.19378361858510e-24, xnorm =     6.51761933158479e+05
+iter = 3, rnorm =     7.04172312289195e-53, sqrt(rnorm/bnorm) =     2.51821225370792e-29, xnorm =     6.51761933158479e+05
+iter = 3, rnorm =     3.07167874577198e-65, sqrt(rnorm/bnorm) =     1.66318575559991e-35, xnorm =     6.51761933158479e+05
+iter = 4, rnorm =     6.73821943578565e-77, sqrt(rnorm/bnorm) =     2.46334610579996e-41, xnorm =     6.51761933158479e+05
+iter = 4, rnorm =     3.03978840467758e-89, sqrt(rnorm/bnorm) =     1.65452958585221e-47, xnorm =     6.51761933158479e+05
+iter = 5, rnorm =    1.65266141135942e-100, sqrt(rnorm/bnorm) =     3.85784525937921e-53, xnorm =     6.51761933158479e+05
+iter = 5, rnorm =    7.27956263118287e-113, sqrt(rnorm/bnorm) =     2.56038635434214e-59, xnorm =     6.51761933158479e+05
 bnorm^2     =     1.11043790743884e+05
-rnorm^2     =     6.83483962221666e-26
+rnorm^2     =     7.30707807978839e-26
 xnorm^2     =     6.51761933158480e+05
-rnorm/bnorm =     7.84543492942939e-16
+rnorm/bnorm =     8.11194008876944e-16
 
 
 print timing
     rank	func_id                         	   calls	    total(s)	  average(s)
-       0	prec_s_                         	      10	4.277992e-02	4.277992e-03
-       0	bicgstab_precdd_s_iter_reduc3_  	     500	3.267527e-03	6.535053e-06
-       0	bicgstab_precdd_s_iter_reduc1_  	    1000	1.497984e-03	1.497984e-06
-       0	bicgstab_precdd_s_iter_reduc2_  	    1000	5.775928e-03	5.775928e-06
-       0	s_mult_wd_deo_out_recv_hpc_calc_	   11000	5.538206e-01	5.034733e-05
-       0	ddd_out_pos_s_                  	   11000	7.102323e-01	6.456657e-05
-       0	ddd_in_s_                       	   10000	1.147007e+00	1.147007e-04
-       0	s_mult_wd_deo_out_send_hpc_     	   11000	1.507475e-01	1.370432e-05
-       0	ddd_out_pre_s_                  	   11000	3.395505e-01	3.086823e-05
-       0	jinv_ddd_in_s_                  	   10000	2.450908e+00	2.450908e-04
-       0	prec_ddd_s_                     	    1000	4.716156e+00	4.716156e-03
-       0	bicgstab_precdd_s_iter_         	     500	4.770489e+00	9.540978e-03
-       0	bicgstab_precdd_s_              	      10	4.771229e+00	4.771229e-01
-       0	bicgstab_iter_                  	      95	3.587334e-01	3.776141e-03
+       0	prec_s_                         	      10	6.178856e-03	6.178856e-04
+       0	bicgstab_precdd_s_iter_bar_reduc3_2_	     500	1.722813e-03	3.445625e-06
+       0	bicgstab_precdd_s_iter_reduc3_  	    1000	4.668713e-03	4.668713e-06
+       0	bicgstab_precdd_s_iter_bar_reduc3_1_	     500	2.506733e-03	5.013466e-06
+       0	bicgstab_precdd_s_iter_reduc1_  	     500	2.451897e-03	4.903793e-06
+       0	bicgstab_precdd_s_iter_bar_reduc1_	     500	1.878500e-03	3.757000e-06
+       0	bicgstab_precdd_s_iter_reduc2_  	     500	3.221512e-03	6.443024e-06
+       0	bicgstab_precdd_s_iter_bar_reduc2_	     500	3.358841e-03	6.717682e-06
+       0	s_mult_wd_deo_out_recv_hpc_calc_	   11000	7.832766e-02	7.120696e-06
+       0	ddd_out_pos_s_                  	   11000	1.660240e-01	1.509309e-05
+       0	ddd_in_s_                       	   10000	9.920859e-02	9.920859e-06
+       0	s_mult_wd_deo_out_send_hpc_     	   11000	4.396129e-02	3.996481e-06
+       0	ddd_out_pre_s_                  	   11000	1.713216e-01	1.557469e-05
+       0	jinv_ddd_in_s_                  	   10000	2.431145e-01	2.431145e-05
+       0	prec_ddd_s_                     	    1000	7.166362e-01	7.166362e-04
+       0	bicgstab_precdd_s_iter_         	     500	7.542524e-01	1.508505e-03
+       0	bicgstab_precdd_s_              	      10	7.556932e-01	7.556932e-02
+       0	bicgstab_iter_                  	      95	3.071235e+00	3.232879e-02
 end
