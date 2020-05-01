@@ -47,6 +47,9 @@
 ##  using the Supercomputer Fugaku.
 ##
 ##****************************************************************************************
+# set default options for Fugaku benchmark
+fugaku_benchmark=
+#===============================================================================
 debug     =
 mpi       =1
 omp       =1
@@ -55,15 +58,14 @@ compiler  =fujitsu_cross
 #arch [fx100, postk, skylake, ofp, thunderx2, simulator]
 arch      =postk
 #profiler [timing, fapp, fpcoll, pa] (nondisclousure: timing2)
-profiler  =timing2
-timing2_path=/home/g9300001/u93022/opt/timing2_para.o
+profiler  =timing
+#timing2_path=/home/g9300001/u93022/opt/timing2_para.o
 prof_selective=
 #target [jinv, in, pre, pos, other, all, all_calc, overlapped, send, send_post, recv, reduc1, reduc2, reduc3]
-target    =all
+target    =
 half_prec =
 #path to half precision library required in non clang mode
 #libhalf=$(HOME)/opt/half-1.12.0/include
-PREFIX    =.
 #rdma [,utofu, utofu_threaded, mpi_rankmap]  (todo: fjmpi)
 rdma      =
 #clangmode : clang mode for fujitsu compiler
@@ -71,8 +73,31 @@ clang     =
 #Power API : Power API for Fugaku and FX1000
 powerapi  =1
 #Barrier before Allreduce
-bar_reduc =
+bar_reduc =1
+#COMPILE_TIME_DIM_SIZE
+fixedsize =
 #===============================================================================
+# set default options for Fugaku benchmark
+ifdef fugaku_benchmark
+debug     =
+mpi       =1
+omp       =1
+compiler  =fujitsu_cross
+arch      =postk
+profiler  =timing2
+timing2_path=/home/g9300001/u93022/opt/timing2_para.o
+prof_selective=
+target    =all
+half_prec =
+rdma      =utofu_threaded
+clang     =
+powerapi  =1
+bar_reduc =
+fixedsize =1
+endif
+#===============================================================================
+REFIX    =.
+
 FPP       = cpp -C -P --sysroot=.
 ARFLAGS   = 
 #FFLAGS    = -I$(HOME)/src/bqcdi/modules 
@@ -234,10 +259,12 @@ else ifeq ($(arch),postk)
        vlend = 8
        vlens = 16
        ifndef clang
-       MYFLAGS += -DARCH_POSTK
-# -DCOMPILE_TIME_DIM_SIZE -DNX=32 -DNY=6 -DNZ=4 -DNT=3 -DINLINE_ASM_UNAVAILABLE
+          MYFLAGS += -DINLINE_ASM_UNAVAILABLE -DARCH_POSTK
        else
-       MYFLAGS +=              -DCOMPILE_TIME_DIM_SIZE -DNX=32 -DNY=6 -DNZ=4 -DNT=3 -DINLINE_ASM_UNAVAILABLE
+          MYFLAGS += -DINLINE_ASM_UNAVAILABLE
+       endif
+       ifdef fixedsize
+          MYFLAGS += -DCOMPILE_TIME_DIM_SIZE -DNX=32 -DNY=6 -DNZ=4 -DNT=3
        endif
 else ifeq ($(arch),thunderx2)
        vlend=2
