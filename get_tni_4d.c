@@ -204,6 +204,46 @@ int get_tni_eval2Feb(int *tni,
 }
 
 
+int get_tni_240rack(int *tni,
+                  const int myrank,
+                  const int *rank_coords,
+                  const int *rank_size){
+
+  if(myrank==0){
+    printf("using tni assignment for 240 rack\n");
+  }
+  if(rank_size[0] != 6
+     || rank_size[1] != 32
+     || rank_size[2] != 6
+     || rank_size[3] != 320 ){
+    if(myrank==0){
+      fprintf(stderr, "bad rank size: %d %d %d %d\n",
+              rank_size[0], rank_size[1], rank_size[2], rank_size[3]);
+    }
+    abort();
+  }
+
+
+  int TNI_Xp[6]={1,0,0,0,1,1};
+  int TNI_Xm[6]={0,1,1,1,0,0};
+  int TNI_Yp[32]={2,1,2,1, 2,1,2,1, 2,1,2,1, 2,1,2,1,
+		  2,1,2,1, 2,1,2,1, 2,1,2,1, 2,1,2,1}; // 2 for loop back
+  int TNI_Ym[32]={0,3,0,3, 0,3,0,3, 0,3,0,3, 0,3,0,3,
+                  0,3,0,3, 0,3,0,3, 0,3,0,3, 0,3,0,3}; // 3 for loop back
+  int TNI_Zp[1]={2};     // 2 for loop back as well
+  int TNI_Zm[1]={3};     // 3 for loop back as well
+  int TNI_Tp[1]={4};
+  int TNI_Tm[1]={5};
+
+  const int *TNI_list[8]={TNI_Xp, TNI_Xm, TNI_Yp, TNI_Ym,
+                          TNI_Zp, TNI_Zm, TNI_Tp, TNI_Tm};
+  const int TNI_size[8]={6,6,32,32,1,1,1,1};
+
+  return get_tni_set(tni, myrank, rank_coords, rank_size, TNI_list, TNI_size);
+
+
+}
+
 int get_tni_list(int *tni,
                  const int myrank,
                  const int *myrank_coords, const int *myrank_size,
@@ -219,6 +259,8 @@ int get_tni_list(int *tni,
       return get_tni_eval2Jan(tni, myrank, myrank_coords, myrank_size);
   } else if (flag==RANKMAP_EVAL2Feb){
       return get_tni_eval2Feb(tni, myrank, myrank_coords, myrank_size);
+  } else if (flag==RANKMAP_240RACK){
+      return get_tni_240rack(tni, myrank, myrank_coords, myrank_size);
   } else { // unkown
     if(myrank==0){
       fprintf(stderr, "unknown rankmap flag is given, using default tni list: flag=%d\n", flag);

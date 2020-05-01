@@ -48,7 +48,8 @@
 ##
 ##****************************************************************************************
 # set default options for Fugaku benchmark
-fugaku_benchmark=
+fugaku_benchmark=1
+benchmark_240rack=
 #===============================================================================
 debug     =
 mpi       =1
@@ -76,6 +77,9 @@ powerapi  =1
 bar_reduc =1
 #COMPILE_TIME_DIM_SIZE
 fixedsize =
+#rankmap specification [, 240rack]
+rankmap =
+
 #===============================================================================
 # set default options for Fugaku benchmark
 ifdef fugaku_benchmark
@@ -94,6 +98,10 @@ clang     =
 powerapi  =1
 bar_reduc =
 fixedsize =1
+rankmap =
+ifdef benchmark_240rack
+rankmap =240rack
+endif
 endif
 #===============================================================================
 REFIX    =.
@@ -195,6 +203,11 @@ else ifeq ($(compiler),fujitsu_cross)
         RDMA_FLAGS= -D_RDMA_ -D_HPC_RDMA
     endif
     MYFLAGS   = -D_MPI_ $(RDMA_FLAGS)
+
+    ifeq ($(rankmap),240rack)
+        MYFLAGS += -D_USE_RANKMAP_240RACK
+    endif
+
 #    MYFLAGS   = -D_MPI_ -D_RDMA_ -D_HPC_RDMA  # with RDMA
 #    MYFLAGS   = -D_MPI_  # without RDMA
 

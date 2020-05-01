@@ -55,5 +55,6 @@
 #define RANKMAP_BAD_TOFU_SIZE -9999
 #define RANKMAP_EVAL2Jan 1 // January
 #define RANKMAP_EVAL2Feb 2 // Februay
+#define RANKMAP_240RACK  3 // 20x16x24
 
 #endif
