@@ -118,8 +118,6 @@ extern int prof_flag;
 # define _S_MULT_WD_DEO_OUT_RECV_HPC_CALC_TOC_
 # define _S_MULT_WD_DEO_OUT_SEND_HPC_TIC_
 # define _S_MULT_WD_DEO_OUT_SEND_HPC_TOC_
-# define _COMM_TIC_
-# define _COMM_TOC_
 # define _OTHER_CALC_TIC_
 # define _OTHER_CALC_TOC_
 # define _OVERLAPPED_CALC_TIC_
@@ -322,8 +320,6 @@ extern int prof_flag;
 # define _S_MULT_WD_DEO_OUT_SEND_HPC_TOC_       IF_PROF( PROF_STOP_SRL("s_mult_wd_deo_out_send_hpc_"))
 # define _OTHER_CALC_TIC_
 # define _OTHER_CALC_TOC_
-# define _COMM_TIC_
-# define _COMM_TOC_
 # define _OVERLAPPED_CALC_TIC_
 # define _OVERLAPPED_CALC_TOC_
 # define _COMLIB_IRECV_ALL_C_TIC_

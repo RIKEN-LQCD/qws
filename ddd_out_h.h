@@ -257,7 +257,6 @@
     } // end of omp parallel
 
     _S_MULT_WD_DEO_OUT_SEND_HPC_TOC_;
-    _COMM_TIC_;
 #pragma omp single nowait
     {
       if (*idomain == 0) {
@@ -277,7 +276,6 @@
       xbound_h_start(6);
       xbound_h_start(7);
     }
-    _COMM_TOC_;
   }
 
   //---------------------------------------------------------------------------------------- postprocess mult D for boundary
@@ -305,7 +303,6 @@
     pgluh_t __restrict__ gt = &gluh[vols*3 + NDIM*vols*(*idomain)];
     half hfactor = half(factor);
 
-    _COMM_TIC_;
 #pragma omp single
     {
       xbound_h_wait(0);
@@ -317,7 +314,6 @@
       xbound_h_wait(6);
       xbound_h_wait(7);
     }
-    _COMM_TOC_;
 
     _S_MULT_WD_DEO_OUT_RECV_HPC_CALC_TIC_;
 
@@ -407,12 +403,10 @@
     }
 
     _S_MULT_WD_DEO_OUT_RECV_HPC_CALC_TOC_;
-    _COMM_TIC_;
 #pragma omp single
     {
       xbound_h_send_waitall();
     }
-    _COMM_TOC_;
   }
 
 

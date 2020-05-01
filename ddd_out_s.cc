@@ -273,7 +273,6 @@ static inline void ddd_out_pre_s_noprl(scs_t* __restrict__  in, int* __restrict_
 
   if(is_timer_enabled) {
     _S_MULT_WD_DEO_OUT_SEND_HPC_TOC_;
-    _COMM_TIC_;
     _COMLIB_ISEND_ALL_C_TIC_;
   }
 #ifdef _THREADED_RDMA
@@ -336,9 +335,10 @@ static inline void ddd_out_pre_s_noprl(scs_t* __restrict__  in, int* __restrict_
   }
 #endif // _THREADED_RDMA
   if(is_timer_enabled) {
+#if PROF_TARGET == TARGET_SEND ||  PROF_TARGET == TARGET_OVERLAPPED || PROF_TARGET == TARGET_RECV
 #pragma omp barrier
+#endif
     _COMLIB_ISEND_ALL_C_TOC_;
-    _COMM_TOC_;
     _OVERLAPPED_CALC_TIC_;
     _COMLIB_IRECV_ALL_C_TIC_;
   }
@@ -357,7 +357,6 @@ static inline void ddd_out_pos_s_noprl(scs_t* __restrict__ out, scs_t* __restric
 #endif
   if(is_timer_enabled) {
     _OVERLAPPED_CALC_TOC_;
-    _COMM_TIC_;
   }
 
 #if 0 //#ifdef _THREADED_RDMA
@@ -403,7 +402,6 @@ static inline void ddd_out_pos_s_noprl(scs_t* __restrict__ out, scs_t* __restric
 #endif // _THREADED_RDMA
   if(is_timer_enabled) {
     _COMLIB_IRECV_ALL_C_TOC_;
-    _COMM_TOC_;
     _S_MULT_WD_DEO_OUT_RECV_HPC_CALC_TIC_;
   }
 
@@ -618,7 +616,6 @@ static inline void ddd_out_pos_s_noprl(scs_t* __restrict__ out, scs_t* __restric
   }
   if(is_timer_enabled) {
     _S_MULT_WD_DEO_OUT_RECV_HPC_CALC_TOC_;
-    _COMM_TIC_;
     _COMLIB_SEND_WAIT_ALL_C_TIC_;
   }
 #ifdef _NO_OMP_SINGLE
@@ -636,7 +633,6 @@ static inline void ddd_out_pos_s_noprl(scs_t* __restrict__ out, scs_t* __restric
 #endif // _NO_OMP_SINGLE
   if(is_timer_enabled) {
     _COMLIB_SEND_WAIT_ALL_C_TOC_;
-    _COMM_TOC_;
   }
 }
 
