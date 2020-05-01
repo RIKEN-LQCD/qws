@@ -283,9 +283,7 @@ static inline void ddd_out_pre_s_noprl(scs_t* __restrict__  in, int* __restrict_
       if (*idomain == 0) {
         xbound_reset_comm(0,4); // set a flag to supress send_check
 	//memcpy(xfs_recv, xfs_send, sizeof(float)*12*ny*nz*nt);
-	projscs1_t *tmp = xfs_recv;
 	xfs_recv = xfs_send;
-	xfs_send = tmp;
       } else {
 	xbound(0,4);
       }
@@ -295,9 +293,7 @@ static inline void ddd_out_pre_s_noprl(scs_t* __restrict__  in, int* __restrict_
       } else {
   	xbound_reset_comm(1,4); // set a flag to supress send_check
 	//memcpy(xbs_recv, xbs_send, sizeof(float)*12*ny*nz*nt);
-	projscs1_t *tmp = xbs_recv;
 	xbs_recv = xbs_send;
-	xbs_send = tmp;
       }
     } else { // req=2,3,...,7
       xbound(req,4);
@@ -314,16 +310,12 @@ static inline void ddd_out_pre_s_noprl(scs_t* __restrict__  in, int* __restrict_
     if (*idomain == 0) {
       xbound_reset_comm(0,4); // set a flag to supress send_check
       //memcpy(xfs_recv, xfs_send, sizeof(float)*12*ny*nz*nt);
-      projscs1_t *tmp = xfs_recv;
       xfs_recv = xfs_send;
-      xfs_send = tmp;
       xbound(1,4);
     } else {
       xbound_reset_comm(1,4); // set a flag to supress send_check
       //memcpy(xbs_recv, xbs_send, sizeof(float)*12*ny*nz*nt);
-      projscs1_t *tmp = xbs_recv;
       xbs_recv = xbs_send;
-      xbs_send = tmp;
       xbound(0,4);
     }
     xbound(2,4);

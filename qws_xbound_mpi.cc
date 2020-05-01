@@ -130,11 +130,14 @@ extern "C"{
   int *recv_started;
   int *recv_started_opposite;
 
+  projscd1_t *xfd_recv0;
+  projscd1_t *xbd_recv0;
+
 #ifdef _USE_RANKMAP
   int rankmap_id;
 #endif
 
- void xbound_set_parity(int parity, int prec){
+  void xbound_set_parity(int parity, int prec){
     if(prec == 8){
       return;
     }
@@ -163,6 +166,9 @@ extern "C"{
       zbs_recv=zbs_recv_array[bufs_parity];
       tfs_recv=tfs_recv_array[bufs_parity];
       tbs_recv=tbs_recv_array[bufs_parity];
+    } else {
+      xfd_recv=xfd_recv0;
+      xbd_recv=xbd_recv0;
     }
   }
 
@@ -216,6 +222,8 @@ extern "C"{
     zbd_recv = (projscd_t*)malloc( sizeof(projscd_t) * nxd*ny*nt);
     tfd_recv = (projscd_t*)malloc( sizeof(projscd_t) * nxd*ny*nz);
     tbd_recv = (projscd_t*)malloc( sizeof(projscd_t) * nxd*ny*nz);
+    xfd_recv0 = xfd_recv; // keep the original value
+    xbd_recv0 = xbd_recv;
 
     // allocate communication buffers (single prec.)
     void *tmp;
@@ -327,6 +335,9 @@ extern "C"{
     }
 
     // send/recv buffers: double precision
+    xfd_recv=xfd_recv0;  // recover from the original value
+    xbd_recv=xbd_recv0;
+
     if(xfd_send) free(xfd_send);
     if(xfd_recv) free(xfd_recv);
     if(xbd_send) free(xbd_send);

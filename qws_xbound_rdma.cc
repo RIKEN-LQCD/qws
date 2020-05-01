@@ -115,6 +115,9 @@ extern "C"{
 
   int rankmap_id;
 
+  projscd1_t *xfd_recv0;
+  projscd1_t *xbd_recv0;
+
   void xbound_set_parity(int parity, int prec){
     if(prec == 8){
       return;
@@ -145,6 +148,9 @@ extern "C"{
       zbs_recv=(projscs_t*)buff_rdma[5].rbuff();
       tfs_recv=(projscs_t*)buff_rdma[6].rbuff();
       tbs_recv=(projscs_t*)buff_rdma[7].rbuff();
+    } else {
+      xfd_recv = xfd_recv0;   // recover from the original value
+      xbd_recv = xbd_recv0;
     }
   }
 
@@ -185,6 +191,15 @@ extern "C"{
       case 7:
         tbs_recv=(projscs_t*)buff_rdma[7].rbuff();
         //#pragma omp flush(zbs_recv)
+        break;
+      }
+    } else {
+      switch(req){
+      case 0:
+	xfd_recv = xfd_recv0;
+        break;
+      case 1:
+	xbd_recv = xbd_recv0;
         break;
       }
     }
@@ -240,6 +255,8 @@ extern "C"{
     zbd_recv = (projscd_t*)malloc( sizeof(projscd_t) * nxd*ny*nt);
     tfd_recv = (projscd_t*)malloc( sizeof(projscd_t) * nxd*ny*nz);
     tbd_recv = (projscd_t*)malloc( sizeof(projscd_t) * nxd*ny*nz);
+    xfd_recv0 = xfd_recv; // keep the original value
+    xbd_recv0 = xbd_recv;
 
     // allocate communication buffers (single prec.)
     // no manual allcoation is needed for RDMA
@@ -360,6 +377,9 @@ extern "C"{
     MPI_Barrier(MPI_COMM_WORLD);
 
     // send/recv buffers: double precision
+    xfd_recv=xfd_recv0;  // recover from the original value
+    xbd_recv=xbd_recv0;
+
     if(xfd_send) free(xfd_send);
     if(xfd_recv) free(xfd_recv);
     if(xbd_send) free(xbd_send);
@@ -532,8 +552,10 @@ extern "C"{
   }
 
   void xbound_recv_okall(int prec) {
-    for(int dir=0; dir<8; dir++){
-      buff_rdma[dir].irecv_ok();
+    if(prec==4){
+      for(int dir=0; dir<8; dir++){
+	buff_rdma[dir].irecv_ok();
+      }
     }
   }
 
