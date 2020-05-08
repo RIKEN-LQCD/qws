@@ -56,6 +56,7 @@
 
 #include <stdint.h>
 #include <stdio.h>
+#include <assert.h>
 #include "rankmap_list.h"
 
 #ifdef _USE_MPI
@@ -661,13 +662,14 @@ int get_tofu_coord_4d_eval2Feb(const int myrank, const uint8_t *my_coords,
 }
 
 
+#define _MAX_TXxTY 640
 int get_tofu_coord_4d_240rack(const int myrank, const uint8_t *my_coords,
-			      const uint8_t *coords_org, const uint8_t *coords_size,
-			      const uint8_t *coords_min, const uint8_t *coords_max,
-			      int *rank_coord, int *rank_size,
-			      uint8_t (*positive_neighbor_coords)[6], int *pos_rank_in_node,
-			      uint8_t (*negative_neighbor_coords)[6], int *neg_rank_in_node,
-			      int DirX, int DirY, int DirZ){
+                              const uint8_t *coords_org, const uint8_t *coords_size,
+                              const uint8_t *coords_min, const uint8_t *coords_max,
+                              int *rank_coord, int *rank_size,
+                              uint8_t (*positive_neighbor_coords)[6], int *pos_rank_in_node,
+                              uint8_t (*negative_neighbor_coords)[6], int *neg_rank_in_node,
+                              int DirX, int DirY, int DirZ){
 
   const int DirA=DirA_;
   const int DirB=DirB_;
@@ -679,7 +681,7 @@ int get_tofu_coord_4d_240rack(const int myrank, const uint8_t *my_coords,
   const int pnz_in_node=2;
 
   if(myrank==0){
-    printf("rankmap for 240 racks\n");
+    printf("rankmap for 240/330 racks\n");
     printf("  coords_org: %d %d %d %d %d %d\n", coords_org[0], coords_org[1], coords_org[2], coords_org[3], coords_org[4], coords_org[5]);
     printf("  coords_size: %d %d %d %d %d %d\n", coords_size[0], coords_size[1], coords_size[2], coords_size[3], coords_size[4], coords_size[5]);
     printf("  coords_min: %d %d %d %d %d %d\n", coords_min[0], coords_min[1], coords_min[2], coords_min[3], coords_min[4], coords_min[5]);
@@ -730,31 +732,35 @@ int get_tofu_coord_4d_240rack(const int myrank, const uint8_t *my_coords,
   int size_z=3;  // node size in z-direction
 
   // for t
-  int TX[320]={0};
-  int TY[320]={0};
+  int TX[_MAX_TXxTY]={0};
+  int TY[_MAX_TXxTY]={0};
+  int TX_size=coords_size[DirX];
+  int TY_size=coords_size[DirY];
+  assert(TX_size*TY_size <=_MAX_TXxTY);
 
   n=0;
   TX[n]=0;
   TY[n]=0;
   n++;
-  for(int y=0; y<16; y+=2){
-    for(int x=1; x<20; x++){
+  for(int y=0; y<TY_size; y+=2){
+    for(int x=1; x<TX_size; x++){
       TX[n]=x;
       TY[n]=y;
       n++;
     }
-    for(int x=19; x>0; x--){
+    for(int x=TX_size-1; x>0; x--){
       TX[n]=x;
       TY[n]=y+1;
       n++;
     }
   }
-  for(int y=15; y>0; y--){
+  for(int y=TY_size-1; y>0; y--){
     TX[n]=0;
     TY[n]=y;
     n++;
   }
   int size_t=n;
+  assert(size_t == TX_size*TY_size);
 
   int rank_in_node=myrank % proc_per_node;
   int py=rank_in_node%pny_in_node;
@@ -904,6 +910,8 @@ int get_tofu_coord_4d_240rack(const int myrank, const uint8_t *my_coords,
 
   return RANKMAP_240RACK;
 }
+#undef _MAX_TXxTY
+
 
 
 int get_tofu_coord_4d(const int myrank, const uint8_t *my_coords, const uint8_t *coords_org, const uint8_t *coords_size,
@@ -928,9 +936,11 @@ int get_tofu_coord_4d(const int myrank, const uint8_t *my_coords, const uint8_t 
 #ifdef _USE_RANKMAP_240RACK
   { // for 240 rack
     if(size[DirA_] !=2 || size[DirB_] !=3 || size[DirC_] !=2
-       || size[DirX_] != 20 || size[DirY_] !=16 || size[DirZ_] !=24 ){
+       //|| size[DirX_] != 20 || size[DirY_] !=16 
+       || size[DirY_] %2 !=0 
+       || size[DirZ_] !=24 ){
       if(myrank==0){
-      fprintf(stderr, "bad mpi size: must be [X,Y,Z,A,B,C]=[20,16,24,2,3,2]  (but [%d,%d,%d,%d,%d,%d])\n", size[DirX_], size[DirY_], size[DirZ_], size[DirA_], size[DirB_], size[DirC_]);
+      fprintf(stderr, "bad mpi size: must be [X,Y,Z,A,B,C]=[*,2n,24,2,3,2]  (but [%d,%d,%d,%d,%d,%d])\n", size[DirX_], size[DirY_], size[DirZ_], size[DirA_], size[DirB_], size[DirC_]);
       }
 #ifdef _USE_MPI
       MPI_Barrier(MPI_COMM_WORLD);
@@ -941,10 +951,10 @@ int get_tofu_coord_4d(const int myrank, const uint8_t *my_coords, const uint8_t 
     }
 
     return get_tofu_coord_4d_240rack(myrank, my_coords, coords_org, coords_size, coords_min, coords_max,
-				     rank_coord, rank_size,
-				     positive_neighbor_coords, pos_rank_in_node,
-				     negative_neighbor_coords, neg_rank_in_node,
-				     DirX_, DirY_, DirZ_);
+                                     rank_coord, rank_size,
+                                     positive_neighbor_coords, pos_rank_in_node,
+                                     negative_neighbor_coords, neg_rank_in_node,
+                                     DirX_, DirY_, DirZ_);
   }
 #endif
 
