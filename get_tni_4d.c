@@ -210,12 +210,13 @@ int get_tni_240rack(int *tni,
                   const int *rank_size){
 
   if(myrank==0){
-    printf("using tni assignment for 240 rack\n");
+    printf("using tni assignment for 240/330 rack\n");
   }
   if(rank_size[0] != 6
      || rank_size[1] != 32
      || rank_size[2] != 6
-     || rank_size[3] != 320 ){
+     //     || rank_size[3] != 320 // 240 rack
+     ){
     if(myrank==0){
       fprintf(stderr, "bad rank size: %d %d %d %d\n",
               rank_size[0], rank_size[1], rank_size[2], rank_size[3]);
