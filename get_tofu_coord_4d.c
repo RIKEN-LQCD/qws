@@ -57,15 +57,20 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <assert.h>
+#include <stdlib.h>
 #include "rankmap_list.h"
 
-#ifdef _USE_MPI
+#ifdef _MPI_
 #include <mpi.h>
+#ifdef _USE_FJMPI_TOPOLOGY
+#include <mpi-ext.h>
+#endif
 #endif
 
 enum {DirX_=0, DirY_, DirZ_, DirA_, DirB_, DirC_};
 const char *tofu_char="XYZABC";
 
+#define QT_MAX_SIZE 64
 
 /*
  helper functions
@@ -84,7 +89,7 @@ void get_relative_coords(int *rcoords, int *size,
   }
 }
 
-void to_absoulte_coords(uint8_t (*neighbor_coords)[6],
+void to_absolute_coords(uint8_t (*neighbor_coords)[6],
                         const uint8_t *coords_org, const uint8_t *coords_size,
                         const uint8_t *coords_min, const uint8_t *coords_max){
 
@@ -392,8 +397,8 @@ int get_tofu_coord_4d_eval2Jan(const int myrank, const uint8_t *my_coords,
   pos_rank_in_node[dir]=rank_in_node;
   neg_rank_in_node[dir]=rank_in_node;
 
-  to_absoulte_coords(positive_neighbor_coords, coords_org, coords_size, coords_min, coords_max);
-  to_absoulte_coords(negative_neighbor_coords, coords_org, coords_size, coords_min, coords_max);
+  to_absolute_coords(positive_neighbor_coords, coords_org, coords_size, coords_min, coords_max);
+  to_absolute_coords(negative_neighbor_coords, coords_org, coords_size, coords_min, coords_max);
 
 #ifdef _DEBUG_TOFU_COORD
   dump_coords(myrank, my_coords, positive_neighbor_coords, negative_neighbor_coords);
@@ -651,8 +656,8 @@ int get_tofu_coord_4d_eval2Feb(const int myrank, const uint8_t *my_coords,
   pos_rank_in_node[dir]=rank_in_node;
   neg_rank_in_node[dir]=rank_in_node;
 
-  to_absoulte_coords(positive_neighbor_coords, coords_org, coords_size, coords_min, coords_max);
-  to_absoulte_coords(negative_neighbor_coords, coords_org, coords_size, coords_min, coords_max);
+  to_absolute_coords(positive_neighbor_coords, coords_org, coords_size, coords_min, coords_max);
+  to_absolute_coords(negative_neighbor_coords, coords_org, coords_size, coords_min, coords_max);
 
 #ifdef _DEBUG_TOFU_COORD
   dump_coords(myrank, my_coords, positive_neighbor_coords, negative_neighbor_coords);
@@ -901,8 +906,8 @@ int get_tofu_coord_4d_240rack(const int myrank, const uint8_t *my_coords,
   pos_rank_in_node[dir]=rank_in_node;
   neg_rank_in_node[dir]=rank_in_node;
 
-  to_absoulte_coords(positive_neighbor_coords, coords_org, coords_size, coords_min, coords_max);
-  to_absoulte_coords(negative_neighbor_coords, coords_org, coords_size, coords_min, coords_max);
+  to_absolute_coords(positive_neighbor_coords, coords_org, coords_size, coords_min, coords_max);
+  to_absolute_coords(negative_neighbor_coords, coords_org, coords_size, coords_min, coords_max);
 
 #ifdef _DEBUG_TOFU_COORD
   dump_coords(myrank, my_coords, positive_neighbor_coords, negative_neighbor_coords);
@@ -913,6 +918,288 @@ int get_tofu_coord_4d_240rack(const int myrank, const uint8_t *my_coords,
 #undef _MAX_TXxTY
 
 
+
+#ifdef _USE_FJMPI_TOPOLOGY
+
+
+int get_tofu_coord_4d_topology_y(const int myrank, const uint8_t *my_coords,
+const uint8_t *coords_org, const uint8_t *coords_size,
+                                 const uint8_t *coords_min, const uint8_t *coords_max,
+                                 int *rank_coord, int *rank_size,
+                                 uint8_t (*positive_neighbor_coords)[6], int *pos_rank_in_node,
+                                 uint8_t (*negative_neighbor_coords)[6], int *neg_rank_in_node,
+                                 int DirX, int DirY, int DirZ){
+
+  // QT direction is formed as a predefiend TY x TB torus
+
+  const int DirA=DirA_;
+  const int DirB=DirB_;
+  const int DirC=DirC_;
+
+  // 2x2 in each node
+  const int proc_per_node=4;
+  const int pny_in_node=2;
+  const int pnz_in_node=2;
+
+  if(myrank==0){
+    printf("rankmap for Fugaku evaluation: uses FJMPI_TOPLOGY for QT\n");
+    printf("  coords_org: %d %d %d %d %d %d\n", coords_org[0], coords_org[1], coords_org[2], coords_org[3], coords_org[4], coords_org[5]);
+    printf("  coords_size: %d %d %d %d %d %d\n", coords_size[0], coords_size[1], coords_size[2], coords_size[3], coords_size[4], coords_size[5]);
+    printf("  coords_min: %d %d %d %d %d %d\n", coords_min[0], coords_min[1], coords_min[2], coords_min[3], coords_min[4], coords_min[5]);
+    printf("  coords_max: %d %d %d %d %d %d\n", coords_max[0], coords_max[1], coords_max[2], coords_max[3], coords_max[4], coords_max[5]);
+    fflush(0);
+  }
+
+  // for x
+  int TA[6] ={0,1,1,1,0,0};
+  int TZc[6]={0,0,1,2,2,1};
+  int size_x = 6;  // node size in x-direction
+
+  // for y
+  //int TC[4]={0,1,1,0};
+  //int TZd[4]={0,0,1,1} (  = {0,0,3,3}/3 )
+  //int TC[6]={0,1,1,1,0,0};
+  //int TZd[6]={0,0,1,2,2,1}( = {0,0,3,6,6,3}/3 )
+  //...
+  //int TC[14]={0,1,1,1,1,1,1,1,0,0,0,0,0,0};
+  //int TZd[14]={0,0,1,2,3,4,5,6,6,5,4,3,2,1} ( = {0,0,3,6,9,12,15,18,18,15,12,9,6,3}/3 )
+  // for size=16: TZ is torus
+  int TC[16] ={0,1,1,0,0,1,1,0,0,1,1,0,0,1,1,0};
+  int TZd[16]={0,0,1,1,2,2,3,3,4,4,5,5,6,6,7,7};
+
+  int size_TZd=coords_size[DirZ]/3;
+  int n=0;
+  if(size_TZd==8){
+    n=16;
+  }else{
+    TC[n]=0;
+    TZd[n]=0;
+    n++;
+    for(int z=0; z<size_TZd; z++){
+      TC[n]=1;
+      TZd[n]=z;
+      n++;
+    }
+    for(int z=size_TZd-1;  z>0; z--){
+      TC[n]=0;
+      TZd[n]=z;
+      n++;
+    }
+  }
+  int size_y=n;  // node size in y-direction
+
+  // for z
+  int TX[24]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23};
+  //int size_z=24;  // node size in z-direction
+  int size_z=coords_size[DirX];  // node size in z-direction
+
+  // for t: use predefined coordinate as Y, made of TB and TY
+  int TB[QT_MAX_SIZE]={0};
+  int TY[QT_MAX_SIZE]={0};
+
+  int rc;
+  int dim;
+  rc = FJMPI_Topology_get_dimension(&dim);
+  if (FJMPI_SUCCESS != rc) {
+    fprintf(stderr, "rank %d: error from FJMPI_Topology_get_dimension\n", myrank);
+    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+  }
+  if (3 != dim) {
+    fprintf(stderr, "rank %d: bad dim from FJMPI_Toplogy_get_dimension: dim=%d (must be 3)\n", myrank, dim);
+    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+  }
+
+  int shape_x, shape_y, shape_z;
+  rc = FJMPI_Topology_get_shape(&shape_x, &shape_y, &shape_z);
+  if (FJMPI_SUCCESS != rc) {
+    fprintf(stderr, "rank %d: error from FJMPI_Topology_get_shape\n", myrank);
+    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+  }
+  int size_t = shape_y;
+  if(size_t>QT_MAX_SIZE){
+    fprintf(stderr, "rank %d: too large shape_y=%d\n", myrank, shape_y);
+    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);    
+  }
+
+  // get logical 3-dim coordiate
+  int coords[3];
+  rc = FJMPI_Topology_get_coords(MPI_COMM_WORLD, myrank, FJMPI_LOGICAL, 3, coords);
+  if (FJMPI_SUCCESS != rc) {
+    fprintf(stderr, "rank %d: error from FJMPI_Topology_get_coords\n", myrank);
+    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+  }
+  int this_y=coords[1];
+
+  int myTBTY[2*QT_MAX_SIZE]={0};
+  int TBTY[2*QT_MAX_SIZE];
+  if(myrank % 4==0){ // assumes 4 ranks in each node
+    if(my_coords[DirX] == coords_org[DirX]  // assumes rectangular shape in TX,TZ,TA,TC
+       && my_coords[DirZ] == coords_org[DirZ]
+       && my_coords[DirA] == coords_org[DirA]
+       && my_coords[DirC] == coords_org[DirC])
+      {
+        myTBTY[2*this_y]  = (my_coords[DirB]-coords_org[DirB] + 3) % 3; // TB is periodic with size=3 
+        myTBTY[2*this_y+1]=my_coords[DirY]-coords_org[DirY];  // TY is not periodic
+      }
+  }
+  MPI_Allreduce(myTBTY, TBTY, 2*size_t, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+  for(int i=0;i<size_t; i++){
+    TB[i]=TBTY[2*i];
+    TY[i]=TBTY[2*i+1];
+  }
+
+  int rank_in_node=myrank % proc_per_node;
+  int py=rank_in_node%pny_in_node;
+  int pz=rank_in_node/pny_in_node;
+
+  // rank size in each direction
+  rank_size[0] = size_x;
+  rank_size[1] = pny_in_node*size_y;
+  rank_size[2] = pnz_in_node*size_z;
+  rank_size[3] = size_t;
+
+  int rcoords[6]; // relative tofu coordinates
+  int size[6];    // tofu size
+  get_relative_coords(rcoords, size, my_coords, coords_org, coords_size, coords_min, coords_max);
+
+  if(myrank==0){
+    printf("tofu size (original): [A,B,C,X,Y,Z]=[%d,%d,%d,%d,%d,%d]\n",
+            size[DirA_],size[DirB_],size[DirC_],size[DirX_],size[DirY_],size[DirZ_]);
+    printf("  rotate: X,Y,Z --> %c,%c,%c\n", tofu_char[DirX], tofu_char[DirY], tofu_char[DirZ]);
+    printf("tofu size (rotated): [A,B,C,X,Y,Z]=[%d,%d,%d,%d,%d,%d]\n",
+            size[DirA],size[DirB],size[DirC],size[DirX],size[DirY],size[DirZ]);
+    printf("----- node coordinates -----\n");
+    printf("map for x:  TA  = ");
+    for(int i=0; i<size_x; i++){printf("%3d",TA[i]); }
+    printf("\n");
+    printf("            TZc = ");
+    for(int i=0; i<size_x; i++){printf("%3d",TZc[i]); }
+    printf("\n");
+
+    printf("map for y:  TC  = ");
+    for(int i=0; i<size_y; i++){printf("%3d",TC[i]); }
+    printf("\n");
+    printf("            TZd = ");
+    for(int i=0; i<size_y; i++){printf("%3d",TZd[i]); }
+    printf("\n");
+
+    printf("map for z:  TX  = ");
+    for(int i=0; i<size_z; i++){printf("%3d",TX[i]); }
+    printf("\n");
+
+    printf("map for t:  TB  = ");
+    for(int i=0; i<size_t; i++){printf("%3d",TB[i]); }
+    printf("\n");
+    printf("            TY  = ");
+    for(int i=0; i<size_t; i++){printf("%3d",TY[i]); }
+    printf("\n");
+    printf("inner node size: 1 2 2 1\n");
+    printf("----------------------------\n");
+    fflush(0);
+  }
+
+  // divide Tz into continuous and discrete
+  int rcoords_Zc=rcoords[DirZ]%3; // continuous
+  int rcoords_Zd=rcoords[DirZ]/3; // discrete
+
+  // look up the node coordinate
+  int node_x=lookup2(rcoords[DirA], TA, rcoords_Zc, TZc, size_x);
+  int node_y=lookup2(rcoords[DirC], TC, rcoords_Zd, TZd, size_y);
+  int node_z=lookup1(rcoords[DirX], TX, size_z);
+  int node_t=lookup2(rcoords[DirB], TB, rcoords[DirY], TY, size_t);
+  if(!node_coords_is_ok(myrank, rcoords, node_x, node_y, node_z, node_t)){
+    return RANKMAP_NODE_NOT_FOUND;
+  }
+
+
+  // logical coordinate
+  rank_coord[0]=node_x;
+  rank_coord[1]=pny_in_node * node_y + py;
+  rank_coord[2]=pny_in_node * node_z + pz;
+  rank_coord[3]=node_t;
+
+  ///////////////////////////////////////////////////////////////////
+  //
+  // neighbors
+  //
+  for(int i=0; i<6; i++){
+    for(int dir=0; dir<4; dir++){
+      positive_neighbor_coords[dir][i]=rcoords[i];
+      negative_neighbor_coords[dir][i]=rcoords[i];
+    }
+  }
+
+  //
+  // x-direction
+  //
+  int dir=0;
+  int xf=(rank_coord[dir]+1) % rank_size[dir];
+  int xb=(rank_coord[dir]-1+rank_size[dir]) % rank_size[dir];
+  positive_neighbor_coords[dir][DirA]=TA[xf];
+  positive_neighbor_coords[dir][DirZ]=3*rcoords_Zd + TZc[xf];
+  negative_neighbor_coords[dir][DirA]=TA[xb];
+  negative_neighbor_coords[dir][DirZ]=3*rcoords_Zd + TZc[xb];
+  pos_rank_in_node[dir]=rank_in_node;
+  neg_rank_in_node[dir]=rank_in_node;
+
+  //
+  // y-direction : has inner node ranks
+  //
+  dir=1;
+  int yf=(rank_coord[dir]+1) % rank_size[dir];
+  int yb=(rank_coord[dir]-1+rank_size[dir]) % rank_size[dir];
+  int pyf=yf % pny_in_node;
+  int pyb=yb % pny_in_node;
+  yf/=pny_in_node;
+  yb/=pny_in_node;
+  pos_rank_in_node[dir] = pyf + pz*pny_in_node;
+  neg_rank_in_node[dir] = pyb + pz*pny_in_node;
+
+  positive_neighbor_coords[dir][DirC]=TC[yf];
+  positive_neighbor_coords[dir][DirZ]=3*TZd[yf] + rcoords_Zc;
+  negative_neighbor_coords[dir][DirC]=TC[yb];
+  negative_neighbor_coords[dir][DirZ]=3*TZd[yb] + rcoords_Zc;
+
+  //
+  // z-direction : has inner node ranks
+  //
+  dir=2;
+  int zf=(rank_coord[dir]+1) % rank_size[dir];
+  int zb=(rank_coord[dir]-1+rank_size[dir]) % rank_size[dir];
+  int pzf=zf % pnz_in_node;
+  int pzb=zb % pnz_in_node;
+  zf/=pnz_in_node;
+  zb/=pnz_in_node;
+  pos_rank_in_node[dir] = py + pzf*pny_in_node;
+  neg_rank_in_node[dir] = py + pzb*pny_in_node;
+  positive_neighbor_coords[dir][DirX]=TX[zf];
+  negative_neighbor_coords[dir][DirX]=TX[zb];
+
+  //
+  // t-direction
+  //
+  dir=3;
+  int tf=(rank_coord[dir]+1) % size_t;
+  int tb=(rank_coord[dir]-1+size_t) % size_t;
+  positive_neighbor_coords[dir][DirB]=TB[tf];
+  positive_neighbor_coords[dir][DirY]=TY[tf];
+  negative_neighbor_coords[dir][DirB]=TB[tb];
+  negative_neighbor_coords[dir][DirY]=TY[tb];
+  pos_rank_in_node[dir]=rank_in_node;
+  neg_rank_in_node[dir]=rank_in_node;
+
+  to_absolute_coords(positive_neighbor_coords, coords_org, coords_size, coords_min, coords_max);
+  to_absolute_coords(negative_neighbor_coords, coords_org, coords_size, coords_min, coords_max);
+
+#ifdef _DEBUG_TOFU_COORD
+  dump_coords(myrank, my_coords, positive_neighbor_coords, negative_neighbor_coords);
+#endif
+
+  return RANKMAP_TOPOLOGY_Y;
+}
+
+
+#endif // _USE_FJMPI_TOPOLOGY
 
 int get_tofu_coord_4d(const int myrank, const uint8_t *my_coords, const uint8_t *coords_org, const uint8_t *coords_size,
                       const uint8_t *coords_min, const uint8_t *coords_max,
@@ -934,7 +1221,7 @@ int get_tofu_coord_4d(const int myrank, const uint8_t *my_coords, const uint8_t 
   }
 
 #ifdef _USE_RANKMAP_240RACK
-  { // for 240 rack
+  { // for 240 rack / 360 rack (extension of the Jan. map)
     if(size[DirA_] !=2 || size[DirB_] !=3 || size[DirC_] !=2
        //|| size[DirX_] != 20 || size[DirY_] !=16 
        || size[DirY_] %2 !=0 
@@ -955,6 +1242,32 @@ int get_tofu_coord_4d(const int myrank, const uint8_t *my_coords, const uint8_t 
                                      positive_neighbor_coords, pos_rank_in_node,
                                      negative_neighbor_coords, neg_rank_in_node,
                                      DirX_, DirY_, DirZ_);
+  }
+#endif
+
+#ifdef _USE_FJMPI_TOPOLOGY
+  if(size[DirA_] ==2 && size[DirC_] ==2 
+    && size[DirX_] == 24 && size[DirZ_] == 24) {
+    if(myrank==0){
+      printf("get_tofu_coord_4d: map as (X,Y,Z,A,B,C)=(24,*,24,2,*,2) [TBxTY is the predefined loop]\n");
+    }
+    return get_tofu_coord_4d_topology_y(myrank, my_coords, coords_org, coords_size, coords_min, coords_max,
+                                        rank_coord, rank_size,
+                                        positive_neighbor_coords, pos_rank_in_node,
+                                        negative_neighbor_coords, neg_rank_in_node,
+                                            DirX_, DirY_, DirZ_);
+  }
+  if(size[DirA_] ==2 && size[DirC_] ==2 
+    && size[DirX_] >=2 && (size[DirZ_] % 3 == 0) ) {
+    if(myrank==0){
+      printf("get_tofu_coord_4d: map as (X,Y,Z,A,B,C)=(*,*,3n,2,*,2) [TBxTY is the predefined loop]\n");
+      printf("  WARNING: this is to test QT, rank map/tni map for the other direction may not be optimal.\n");
+    }
+    return get_tofu_coord_4d_topology_y(myrank, my_coords, coords_org, coords_size, coords_min, coords_max,
+                                        rank_coord, rank_size,
+                                        positive_neighbor_coords, pos_rank_in_node,
+                                        negative_neighbor_coords, neg_rank_in_node,
+                                        DirX_, DirY_, DirZ_);
   }
 #endif
 
@@ -979,7 +1292,7 @@ int get_tofu_coord_4d(const int myrank, const uint8_t *my_coords, const uint8_t 
                                       DirX_, DirY_, DirZ_);
   }
 
-  if(   // for 1 rack: (X,Y,Z,A,B,C)=(*,2,24,2,3,2)
+  if(   // (X,Y,Z,A,B,C)=(*,2,24,2,3,2)
      size[DirX_] > 1 && size[DirY_] == 2
      && size[DirZ_] == 24 ) {
     if(myrank==0){

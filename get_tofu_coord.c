@@ -115,7 +115,11 @@ int check_tofu_volume(const uint8_t *my_coords, uint8_t *coords_org, uint8_t *co
     }
     coords_org[i]=org;
   }
-
+#ifdef _USE_FJMPI_TOPOLOGY
+  // the shape may not be rectangular 
+  coords_org[1]=coords_min[1]; // TY: not a torus
+  coords_org[4]=coords_min[4];
+#endif
   //
   // periodic condition:
   //   if coord[i] > coord_max[i]
@@ -155,8 +159,16 @@ int check_tofu_volume(const uint8_t *my_coords, uint8_t *coords_org, uint8_t *co
         fprintf(stderr, "        %d: %3d  %3d  %3d  %3d\n", i, coords_min[i], coords_max[i], coords_size[i], coords_org[i]);
       }
     }
+#ifdef _USE_FJMPI_TOPOLOGY
+    if(myrank==0){
+      fprintf(stderr, "warning: allocated size is not (hyper-)rectangluer:\n");
+    }
+#else
+    if(myrank==0){
+      fprintf(stderr, "error: allocated size is not (hyper-)rectangluer:\n");
+    }
     return -1;
-
+#endif
     // or find a largest hyper rectangluar which fit in the given nodes
     //  np = ...
   }

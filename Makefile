@@ -49,8 +49,10 @@
 ##****************************************************************************************
 # set default options for Fugaku benchmark
 fugaku_benchmark=1
+# only one option can be active
 benchmark_240rack=
 benchmark_330rack=
+benchmark_rankmap_topology_y=
 #===============================================================================
 debug     =
 mpi       =1
@@ -60,7 +62,7 @@ compiler  =fujitsu_cross
 #arch [fx100, postk, skylake, ofp, thunderx2, simulator]
 arch      =postk
 #profiler [timing, fapp, fpcoll, pa] (nondisclousure: timing2)
-profiler  =timing
+profiler  =
 #timing2_path=/home/g9300001/u93022/opt/timing2_para.o
 prof_selective=
 #target [jinv, in, pre, pos, other, all, all_calc, overlapped, send, send_post, recv, reduc1, reduc2, reduc3]
@@ -78,7 +80,7 @@ powerapi  =1
 bar_reduc =1
 #COMPILE_TIME_DIM_SIZE
 fixedsize =
-#rankmap specification [, 240rack, 330rack]
+#rankmap specification [, 240rack, 330rack, topology_y]
 rankmap =
 
 #===============================================================================
@@ -105,6 +107,9 @@ rankmap =240rack
 endif
 ifdef benchmark_330rack
 rankmap =330rack
+endif
+ifdef benchmark_rankmap_topology_y
+rankmap =topology_y
 endif
 endif
 #===============================================================================
@@ -214,6 +219,9 @@ else ifeq ($(compiler),fujitsu_cross)
     endif
     ifeq ($(rankmap),330rack)
         MYFLAGS += -D_USE_RANKMAP_240RACK
+    endif
+    ifeq ($(rankmap),topology_y)
+        MYFLAGS += -D_USE_FJMPI_TOPOLOGY
     endif
 
 #    MYFLAGS   = -D_MPI_ -D_RDMA_ -D_HPC_RDMA  # with RDMA

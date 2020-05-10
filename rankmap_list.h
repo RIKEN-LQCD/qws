@@ -56,5 +56,6 @@
 #define RANKMAP_EVAL2Jan 1 // January
 #define RANKMAP_EVAL2Feb 2 // Februay
 #define RANKMAP_240RACK  3 // 20x16x24
+#define RANKMAP_TOPOLOGY_Y 4 // use predefined TBxTY
 
 #endif
