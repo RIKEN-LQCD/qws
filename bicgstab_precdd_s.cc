@@ -57,11 +57,6 @@
 #include "prefetch.h"
 #include <omp.h>
 
-// for power API
-#include <stdio.h>
-#include <unistd.h>
-#include "pwr.h"
-// for power API end
 
 
 #undef _DEBUG_
