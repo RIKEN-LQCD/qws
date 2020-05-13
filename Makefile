@@ -215,14 +215,7 @@ else ifeq ($(compiler),fujitsu_cross)
     ifeq ($(rankmap),330rack)
         MYFLAGS += -D_USE_RANKMAP_240RACK
     endif
-
-#    MYFLAGS   = -D_MPI_ -D_RDMA_ -D_HPC_RDMA  # with RDMA
-#    MYFLAGS   = -D_MPI_  # without RDMA
-
     MYFLAGS    += -D_NO_OMP_SINGLE  # error avoiding
-    ifdef bar_reduc
-      MYFLAGS+= -D_MPI_BARRIER_BEFORE_REDUC_
-    endif
   else
     CC        = fccpx
     CXX       = FCCpx
@@ -349,6 +342,9 @@ ifdef mpi
   ifeq ($(rdma),fjmpi)
     OBJS_XBOUND = qws_xbound_rdma.o
     OBJS_COMM = $(OBJS_XBOUND) rdma_comlib.o rdma_comlib_2buf.o
+  endif
+  ifdef bar_reduc
+    MYFLAGS+= -D_MPI_BARRIER_BEFORE_REDUC_
   endif
 else
   OBJS_XBOUND = qws_xbound_nompi.o
