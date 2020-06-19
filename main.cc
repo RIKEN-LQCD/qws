@@ -147,7 +147,8 @@ int main( int argc, char *argv[] ){
 
   double tol   = atof(argv[9]);
   double tol_s = atof(argv[10]);
-
+  int dd_maxiter= atoi(argv[11]);
+  int dd_maxiter_s= atoi(argv[12]);
 
   int fbc_f[4];
   fbc_f[0]=1;
@@ -247,16 +248,14 @@ int main( int argc, char *argv[] ){
   double rtmp0 = 0;
   double rtmp1 = 0;
   double rtmp2 = 0;
-  int maxiter, iter;
-  maxiter =100;
-
+  int iter;
   // ------------------------- test case End
   if(rank==0)printf("\n");
   if(rank==0)printf("\n");
   // ------------------------- LDDHMC solver with Jacobi method instead of SSOR
   if(rank==0)printf("LDDHMC solver with Jacobi method instead of SSOR\n");
-  maxiter  =6;
-  int maxiter_s=50;
+  //maxiter  =6;
+  //int maxiter_s=50;
   int nsap, nm;
   nsap = 4;
   nm = 2;
@@ -276,7 +275,7 @@ int main( int argc, char *argv[] ){
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
   double start_time=get_clock();
-  bicgstab_dd_mix_(x, b, &tol, &iter, &maxiter, &tol_s, &maxiter_s, &nsap, &nm);
+  bicgstab_dd_mix_(x, b, &tol, &iter, &dd_maxiter, &tol_s, &dd_maxiter_s, &nsap, &nm);
 #ifdef _MPI_
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
@@ -333,7 +332,7 @@ int main( int argc, char *argv[] ){
   MPI_Barrier(MPI_COMM_WORLD);
 #endif
   start_time=get_clock();
-  bicgstab_dd_mix2_hf_(x, b, &tol, &iter, &maxiter, &tol_s, &maxiter_s, &nsap, &nm);
+  bicgstab_dd_mix2_hf_(x, b, &tol, &iter, &dd_maxiter, &tol_s, &dd_maxiter_s, &nsap, &nm);
 #ifdef _MPI_
   MPI_Barrier(MPI_COMM_WORLD);
 #endif

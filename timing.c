@@ -161,16 +161,16 @@ init_timing_node (void)
   return cur;
 }
 
+#include<time.h>
 double
 get_clock (void)
 {
-  struct timeval tp;
-  //clock_gettime is not tested yet on K computer
-  //  clock_gettime(CLOCK_REALTIME, &tp);
-  //  return ((double) tp.tv_sec + (double) tp.tv_nsec * 1e-9);
-
-  gettimeofday(&tp, NULL);
-  return ((double) tp.tv_sec + (double) tp.tv_usec * 1e-6);
+  struct timespec tp;
+  clock_gettime(CLOCK_REALTIME, &tp);
+  return ((double) tp.tv_sec + (double) tp.tv_nsec * 1e-9);
+  //struct timeval tp;
+  //gettimeofday(&tp, NULL);
+  //return ((double) tp.tv_sec + (double) tp.tv_usec * 1e-6);
 }
 
 ///////////////////////////////////////////////////////
