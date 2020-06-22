@@ -64,13 +64,14 @@ volatile uint8_t m_rankmap_lib_mytofu_offset[6];
 volatile int m_rankmap_lib_myrank_in_node;
 volatile int m_rankmap_lib_dim;
 volatile int m_rankmap_lib_neighbor_rank_in_node[8];
+int m_rankmap_lib_tni_list[8];
 
 
 // get_tofu_coord.c
-int get_tofu_coord(uint8_t *my_coords, int *rank_coord, int *rank_size,
+int get_tofu_coord_and_tni(uint8_t *my_coords, int *rank_coord, int *rank_size,
                    uint8_t (*positive_neighbor_coords)[6], int *pos_rank_in_node,
                    uint8_t (*negative_neighbor_coords)[6], int *neg_rank_in_node,
-                   const int dim);
+                   int *tni_list);
 
 //int get_tofu_coord(uint8_t *my_coords, uint8_t *coords_offset,
 //                   int *rank_coord, int *rank_size, 
@@ -457,120 +458,6 @@ void rankmap_lib_get_rankmap(int *myrank_coord, int *neighbors, int *process_siz
 }
 
 
-int rankmap_lib_set_rankmap2d() {
-
-  static const int dim=2;
-  static const int proc_per_node=4;
-  int myrank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
-
-  assert(proc_per_node==4);
-  int err=0;
-
-  m_rankmap_lib_myrank_in_node=myrank % proc_per_node;
-  m_rankmap_lib_dim=dim;
-
-  fprintf(stderr, "rank %d: setting m_rankmap_lib_dim: dim=%d\n", myrank, dim);
-
-  //
-  // get tofu coordinate of this and logical neghboring nodes
-  //
-  uint8_t pos_coords[2][6];  // target Tofu coordinate: posivie neighbors
-  int pos_rank_in_node[2];   // rank id in the node:    posivie neighbors
-  uint8_t neg_coords[2][6];  // target Tofu coordinate: negative neighbors
-  int neg_rank_in_node[2];   // rank id in the node:    negative neighbors
-  uint8_t my_coords[6];      // Tofu coordinate of this rank
-  int rank_coord[2];         // logical rank coordiante
-  int rank_size[2];          // logical rank size
-
-  int mapid=get_tofu_coord(my_coords, rank_coord, rank_size, &pos_coords[0], pos_rank_in_node, &neg_coords[0], neg_rank_in_node, 2);
-  if(mapid<0){
-    //      fprintf(stderr, "rank %d: Failed at get_tofu_coord()! err=%d\n", myrank, err);
-    if(myrank==0){
-      fprintf(stderr, "WARNING: no rank map is found.\n");
-    }
-    return mapid;
-    //    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
-  }
-
-  if(myrank==0){
-    printf("rdma_utofu_comlib: 2d rankmap, size = %d x %d\n", rank_size[0], rank_size[1]);
-  }
-
-#ifdef _RANKMAP_DEBUG
-  fprintf(stderr, "rank %d: tofu coord = (%d %d %d %d %d %d):%d, +x:(%d %d %d %d %d %d):%d, +y:(%d %d %d %d %d %d):%d\n",
-          myrank,
-          my_coords[0], my_coords[1], my_coords[2], my_coords[3], my_coords[4], my_coords[5], tmp,
-          pos_coords[0][0], pos_coords[0][1], pos_coords[0][2], pos_coords[0][3], pos_coords[0][4], pos_coords[0][5], rank_in_node[0],
-          pos_coords[1][0], pos_coords[1][1], pos_coords[1][2], pos_coords[1][3], pos_coords[1][4], pos_coords[1][5], rank_in_node[1]);
-
-  fprintf(stderr, "rank %d: tni_id=%d, cq_id=%d, comp_id=%d\n", myrank,
-          tni_id, cq_id, comp_id);
-#endif
-
-
-  //
-  // get rank id of the logical neghboring process
-  //
-  int pos_ranks[2]; // positive neighbor
-  int neg_ranks[2]; // negative neighbor
-
-  exchange_ranks(my_coords, pos_ranks, neg_ranks, 
-                 pos_coords, pos_rank_in_node,
-                 dim, proc_per_node);
-
-
-  //
-  // set the result to the global variables
-  //
-  for(int i=0; i<6; i++){
-    m_rankmap_lib_mytofu[i]=my_coords[i];
-  }
-
-  for(int i=0; i<8; i++){
-    for(int j=0; j<6; j++) {
-      m_rankmap_lib_neighbor_tofu[i][j]=99;
-    }}
-  for(int dir=0; dir<dim; dir++){
-    m_rankmap_lib_process_coord[dir]=rank_coord[dir];
-    m_rankmap_lib_process_size[dir]=rank_size[dir];
-    m_rankmap_lib_neighbor_ranks[2*dir  ] = pos_ranks[dir];
-    m_rankmap_lib_neighbor_ranks[2*dir+1] = neg_ranks[dir];
-    m_rankmap_lib_neighbor_rank_in_node[2*dir  ] = pos_ranks[dir] % proc_per_node;
-    m_rankmap_lib_neighbor_rank_in_node[2*dir+1] = neg_ranks[dir] % proc_per_node;
-    for(int i=0; i<6; i++){
-      m_rankmap_lib_neighbor_tofu[2*dir  ][i] = pos_coords[dir][i];
-      m_rankmap_lib_neighbor_tofu[2*dir+1][i] = neg_coords[dir][i];
-    }
-    // bug? w/o this dumping, m_rankmap_lib_neighbor is not properly updated
-    // [ to aviod this bug, m_rankmap_lib_neighbor is changed to volatile ]
-    //    uint8_t *p=m_rankmap_lib_neighbor_tofu[2*dir  ];
-    //    uint8_t *n=m_rankmap_lib_neighbor_tofu[2*dir+1];
-    //    fprintf(stderr, "fuga: I am %d, dir=%d: positive_ncoods = %d %d %d %d %d, negative_ncoords = %d %d %d %d %d %d\n",
-    //      myrank, dir, p[0],p[1],p[2],p[3],p[4],p[5], n[0],n[1],n[2],n[3],n[4],n[5]);
-
-  }
-
-#ifdef DUMP_RANKMAP
-  for(int dir=0; dir <2; dir++){
-    volatile uint8_t *p=m_rankmap_lib_neighbor_tofu[2*dir  ];
-    volatile uint8_t *n=m_rankmap_lib_neighbor_tofu[2*dir+1];
-    volatile uint8_t *m=m_rankmap_lib_mytofu;
-    fprintf(stderr, "  rankmap: rank=%d [%d %d %d %d %d %d], dir=%d: positive_ncoords = %d %d %d %d %d %d (rank %d), nagative_ncoords = %d %d %d %d %d %d (rank %d)\n",
-            myrank, m[0], m[1], m[2], m[3], m[4], m[5],
-            dir, p[0],p[1],p[2],p[3],p[4],p[5], pos_ranks[dir], n[0],n[1],n[2],n[3],n[4],n[5], neg_ranks[dir]);
-  }
-#endif
-
-  err=check_neighbors();
-  if(err){
-    fprintf(stderr, "rank %d: error at check_neighbors()\n");
-    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
-  }
-
-  return mapid;
-}
-
 
 int rankmap_lib_set_rankmap4d() {
 
@@ -597,7 +484,8 @@ int rankmap_lib_set_rankmap4d() {
   int rank_coord[4];         // logical rank coordiante
   int rank_size[4];          // logical rank size
 
-  int mapid=get_tofu_coord(my_coords, rank_coord, rank_size, &pos_coords[0], pos_rank_in_node, &neg_coords[0], neg_rank_in_node, dim);
+
+  int mapid=get_tofu_coord_and_tni(my_coords, rank_coord, rank_size, &pos_coords[0], pos_rank_in_node, &neg_coords[0], neg_rank_in_node, m_rankmap_lib_tni_list);
   if(mapid<0){
     //fprintf(stderr, "rank %d: Failed at get_tofu_coord()! err=%d\n", myrank, err);
     if(myrank==0){
@@ -703,31 +591,8 @@ int rankmap_lib_set_rankmap4d() {
 }
 
 int rankmap_lib_get_tni_list(int *tni_list, const int *flag){
-
-  int myrank;
-  MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
-
-  // copy to non volatile working variables
-  int myrank_coord[4];
-  int rank_size[4];
-  if(m_rankmap_lib_dim!=2 && m_rankmap_lib_dim!=4){
-    fprintf(stderr, "rank %d: cannot happen, m_rankmap_lib_dim=%d  (did you call set_rankmap* function?)\n",myrank, m_rankmap_lib_dim);
-    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
-  }
-
-  for(int dir=0; dir<m_rankmap_lib_dim; dir++){
-    rank_size[dir]=m_rankmap_lib_process_size[dir];
-    myrank_coord[dir]=m_rankmap_lib_process_coord[dir];
-  }
-  if(myrank==0){
-    fprintf(stderr, "rankmap_lib: calling get_tni_list for dim=%d, flag=%d\n", m_rankmap_lib_dim, *flag);
-  }
-  int err=get_tni_list(tni_list,
-                       myrank,
-                       myrank_coord, rank_size, *flag);
-  if(err){
-    fprintf(stderr, "rank %d: bad tni assignment\n", myrank);
-    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+  for(int dir2=0; dir2<2*m_rankmap_lib_dim; dir2++){
+    tni_list[dir2] = m_rankmap_lib_tni_list[dir2];
   }
   return 0;
 

@@ -47,7 +47,6 @@
 //  using the Supercomputer Fugaku.
 //
 //****************************************************************************************
-#ifdef _UTOFU_RANKMAP
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -55,25 +54,10 @@
 #include <mpi-ext.h>
 #include <utofu.h>
 #include "rankmap_list.h"
-
-int get_tofu_coord_2d(const int myrank, const uint8_t *my_coords, const uint8_t *coords_org, const uint8_t *coords_size,
-                      const uint8_t *coords_min, const uint8_t *coords_max,
-                      int *rank_coord, int *rank_size,
-                      uint8_t (*positive_neighbor_coords)[6], int *pos_rank_in_node,
-                      uint8_t (*negative_neighbor_coords)[6], int *neg_rank_in_node);
+#include "get_tofu_coord_common.h"
 
 
-int get_tofu_coord_4d(const int myrank, const uint8_t *my_coords, const uint8_t *coords_org, const uint8_t *coords_size,
-                      const uint8_t *coords_min, const uint8_t *coords_max,
-                      int *rank_coord, int *rank_size,
-                      uint8_t (*positive_neighbor_coords)[6], int *pos_rank_in_node,
-                      uint8_t (*negative_neighbor_coords)[6], int *neg_rank_in_node);
 
-#ifdef RANKMAP_USE_2DIM
-// nothing to define/undef
-#else
-#define RANKMAP_USE_4DIM
-#endif
 
 #define TOFU_MAX_IN_1AXIS 32
 int check_tofu_volume(const uint8_t *my_coords, uint8_t *coords_org, uint8_t *coords_size, uint8_t *coords_min, uint8_t *coords_max, int *np){
@@ -115,11 +99,7 @@ int check_tofu_volume(const uint8_t *my_coords, uint8_t *coords_org, uint8_t *co
     }
     coords_org[i]=org;
   }
-#ifdef _USE_FJMPI_TOPOLOGY
-  // the shape may not be rectangular 
-  coords_org[1]=coords_min[1]; // TY: not a torus
-  coords_org[4]=coords_min[4];
-#endif
+
   //
   // periodic condition:
   //   if coord[i] > coord_max[i]
@@ -152,25 +132,25 @@ int check_tofu_volume(const uint8_t *my_coords, uint8_t *coords_org, uint8_t *co
   }
   if(tofu_vol*4 != *np){
     if(myrank==0){
-      fprintf(stderr, "error: allocated size is not (hyper-)rectangluer:\n");
+      fprintf(stderr, "warning: allocated size is not (hyper-)rectangluer:\n");
       fprintf(stderr, "       np = %d, tofu_vol * 4 = %d\n", *np, tofu_vol*4);
       fprintf(stderr, "       dir: min  max  size origin\n");
       for(int i=0; i<6; i++){
         fprintf(stderr, "        %d: %3d  %3d  %3d  %3d\n", i, coords_min[i], coords_max[i], coords_size[i], coords_org[i]);
       }
     }
-#ifdef _USE_FJMPI_TOPOLOGY
-    if(myrank==0){
-      fprintf(stderr, "warning: allocated size is not (hyper-)rectangluer:\n");
-    }
-#else
-    if(myrank==0){
-      fprintf(stderr, "error: allocated size is not (hyper-)rectangluer:\n");
-    }
-    return -1;
-#endif
+    return RANKMAP_TOPOLOGY_Y;
+
     // or find a largest hyper rectangluar which fit in the given nodes
     //  np = ...
+  }
+
+  if(coords_size[DirA_] !=2 || coords_size[DirB_] !=3 || coords_size[DirC_] !=2 ){
+    if(myrank==0){
+      fprintf(stderr, "bad mpi size: must be [X,Y,Z,A,B,C]=[*,*,*,2,3,2]  (but [%d,%d,%d,%d,%d,%d])\n",
+              coords_size[DirX_], coords_size[DirY_], coords_size[DirZ_], coords_size[DirA_], coords_size[DirB_], coords_size[DirC_]);
+    }
+    return -1;
   }
 
   if(myrank==0){
@@ -186,12 +166,133 @@ int check_tofu_volume(const uint8_t *my_coords, uint8_t *coords_org, uint8_t *co
 
 
 
-int naive_rank_asignment(int *rank_coord, int *rank_size);
+//int naive_rank_asignment(int *rank_coord, int *rank_size);
 
-int get_tofu_coord(uint8_t *my_coords, int *rank_coord, int *rank_size,
-                   uint8_t (*positive_neighbor_coords)[6], int *pos_rank_in_node,
-                   uint8_t (*negative_neighbor_coords)[6], int *neg_rank_in_node,
-                   const int dim){
+//
+// choose and get the rankmap
+//
+int call_get_tofu_coord_and_tni(const int myrank, const uint8_t *my_coords,
+                                const uint8_t *coords_org, const uint8_t *coords_size,
+                                const uint8_t *coords_min, const uint8_t *coords_max,
+                                int *rank_coord, int *rank_size,
+                                uint8_t (*positive_neighbor_coords)[6], int *pos_rank_in_node,
+                                uint8_t (*negative_neighbor_coords)[6], int *neg_rank_in_node,
+                                int pre_mapid,
+                                int *tni_list){
+  int size[6];    // tofu size
+  for(int i=0; i<6; i++){
+    size[i]=coords_size[i];
+  }
+
+  if( pre_mapid == RANKMAP_TOPOLOGY_Y ){
+    if ( size[DirX_] == 24 && size[DirZ_] == 24
+         && size[DirA_] == 2 && size[DirC_] == 2){
+      if(myrank==0){
+        printf("get_tofu_coord_and_tni: RANKMAP_TOPOLOGY_Y is given, (X,Y,Z,A,B,C)=(24,*,24,2,*,2)\n");
+        fprintf(stderr, "map for topology_y is not yet ready\n");
+      }
+      MPI_Barrier(MPI_COMM_WORLD);
+      MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+      /*
+      return get_tofu_coord_and_tni_topology_y(myrank, my_coords, coords_org, coords_size, coords_min, coords_max,
+                                               rank_coord, rank_size,
+                                               positive_neighbor_coords, pos_rank_in_node,
+                                               negative_neighbor_coords, neg_rank_in_node,
+                                               tni_list,
+                                               DirX_, DirY_, DirZ_);
+      */
+    }
+    if(myrank==0){
+      printf("get_tofu_coord_and_tni: RANKMAP_TOPOLOGY_Y requires (X,Y,Z,A,B,C)=(24,*,24,2,*,2), but X and/or Y are not.\n");
+    }
+    return -1;
+  }
+
+
+  // open Y
+  if(  // (X,Y,Z,A,B,C)=(24,*,24,2,3,2)
+     (size[DirX_] == 24)
+     && (size[DirZ_] == 24) ) {
+    if(myrank==0){
+       printf("get_tofu_coord_and_tni: map as (X,Y,Z,A,B,C)=(24,*,24,2,3,2)\n");
+     }
+    return get_tofu_coord_and_tni_openY(myrank, my_coords, coords_org, coords_size, coords_min, coords_max,
+                                        rank_coord, rank_size,
+                                        positive_neighbor_coords, pos_rank_in_node,
+                                        negative_neighbor_coords, neg_rank_in_node,
+                                        tni_list,
+                                        DirX_, DirY_, DirZ_);
+  }
+
+  // open X,Y
+  if(  // (X,Y,Z,A,B,C)=(*,*,24,2,3,2) with X x Y = even
+     (size[DirX_] * size[DirY_]  % 2 == 0)
+     && (size[DirZ_] == 24) ) {
+    if(myrank==0){
+       printf("get_tofu_coord_and_tni: map as (X,Y,Z,A,B,C)=(*,*,3n,2,3,2) with X x Y = even\n");
+     }
+    return get_tofu_coord_and_tni_openXY(myrank, my_coords, coords_org, coords_size, coords_min, coords_max,
+                                         rank_coord, rank_size,
+                                         positive_neighbor_coords, pos_rank_in_node,
+                                         negative_neighbor_coords, neg_rank_in_node,
+                                         tni_list,
+                                         DirX_, DirY_, DirZ_);
+  }
+
+  if(  // (X,Y,Z,A,B,C)=(24,*,*,2,3,2) with Z x Y = even
+     (size[DirZ_] * size[DirY_]  % 2 == 0)
+     && (size[DirY_] == 24) ) {
+    if(myrank==0){
+       printf("get_tofu_coord_and_tni: map as (X,Y,Z,A,B,C)=(24,*,*,2,3,2) with Z x Y = even\n");
+     }
+    return get_tofu_coord_and_tni_openXY(myrank, my_coords, coords_org, coords_size, coords_min, coords_max,
+                                         rank_coord, rank_size,
+                                         positive_neighbor_coords, pos_rank_in_node,
+                                         negative_neighbor_coords, neg_rank_in_node,
+                                         tni_list,
+                                         DirZ_, DirY_, DirX_);
+  }
+
+  // open X,Y,Z
+  if(  // (X,Y,Z,A,B,C)=(*,*,3n,2,3,2) with X x Y = even
+     (size[DirX_] * size[DirY_]  % 2 == 0)
+     && (size[DirZ_] % 3 == 0) ) {
+    if(myrank==0){
+       printf("get_tofu_coord_and_tni: map as (X,Y,Z,A,B,C)=(*,*,3n,2,3,2) with X x Y = even\n");
+     }
+    return get_tofu_coord_and_tni_openXYZ(myrank, my_coords, coords_org, coords_size, coords_min, coords_max,
+                                          rank_coord, rank_size,
+                                          positive_neighbor_coords, pos_rank_in_node,
+                                          negative_neighbor_coords, neg_rank_in_node,
+                                          tni_list,
+                                          DirX_, DirY_, DirZ_);
+  }
+
+  if(    // (X,Y,Z,A,B,C)=(3n*,*,*,2,3,2) with Z x Y = even
+     (size[DirZ_] * size[DirY_]  % 2 == 0)
+     && size[DirX_] % 3 == 0) {
+    if(myrank==0){
+       printf("get_tofu_coord_and_tni: map as (X,Y,Z,A,B,C)=(3n,*,*,2,3,2) with Z x Y = even\n");
+     }
+    return get_tofu_coord_and_tni_openXYZ(myrank, my_coords, coords_org, coords_size, coords_min, coords_max,
+                                          rank_coord, rank_size,
+                                          positive_neighbor_coords, pos_rank_in_node,
+                                          negative_neighbor_coords, neg_rank_in_node,
+                                          tni_list,
+                                          DirZ_, DirY_, DirX_);
+  }
+
+
+
+
+  // not found
+  return -1;
+}
+
+int get_tofu_coord_and_tni(uint8_t *my_coords, int *rank_coord, int *rank_size,
+                           uint8_t (*positive_neighbor_coords)[6], int *pos_rank_in_node,
+                           uint8_t (*negative_neighbor_coords)[6], int *neg_rank_in_node,
+                           int *tni_list){
 
   int myrank, np_available;
   MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
@@ -206,62 +307,40 @@ int get_tofu_coord(uint8_t *my_coords, int *rank_coord, int *rank_size,
   }
 
   // check if the assigned network is a hyper-rectangular
-  int err=0;
-  int mapid=-1;
+  //   it also obtain the assinged tofu coordiate
+  //   N.B:  if the XXX axis use the torus nature,
+  //         coords_min[XXX] + coords_size[XXX] != coords_max[XXX]
+
   uint8_t coords_org[6], coords_size[6];
   uint8_t coords_min[6], coords_max[6];
-  err=check_tofu_volume(my_coords, coords_org, coords_size,
-                        coords_min, coords_max, &np_available);
-  if(err){
-    fprintf(stderr, "rank %d: Failed at check_tofu_volume()! err=%d\n", myrank, err);
+  int pre_mapid=check_tofu_volume(my_coords, coords_org, coords_size,
+                                  coords_min, coords_max, &np_available);
+  if(pre_mapid<0){
+    fprintf(stderr, "rank %d: Failed at check_tofu_volume()! err=%d\n", myrank, pre_mapid);
     //    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
-    return err;
+    return pre_mapid;
   }
 
-  if(np_available<4){
-    if(myrank==0){
-      fprintf(stderr, "number of total process is too few: %d; using default rankmap\n", np_available);
-    }
-    return -1;
-  }
-  if(dim==2){
-#ifdef RANKMAP_USE_2DIM
-    if(myrank==0){
-      pritntf("checking rankmap for 2d\n");
-    }
-    mapid=get_tofu_coord_2d(myrank, my_coords,
-                            coords_org, coords_size, coords_min, coords_max,
-                            rank_coord, rank_size,
-                            positive_neighbor_coords, pos_rank_in_node,
-                            negative_neighbor_coords, neg_rank_in_node);
-#endif
-    if(mapid == RANKMAP_BAD_TOFU_SIZE){
-      MPI_Barrier(MPI_COMM_WORLD);
-    }
-    if(mapid == RANKMAP_NODE_NOT_FOUND || mapid == RANKMAP_BAD_TOFU_SIZE){
-      MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
-    }
-  } else if(dim == 4){
-#ifdef RANKMAP_USE_4DIM
-    if(myrank==0){
-      printf("checking rankmap for 4d\n");
-    }
-    mapid=get_tofu_coord_4d(myrank, my_coords,
-                            coords_org, coords_size, coords_min, coords_max,
-                            rank_coord, rank_size,
-                            positive_neighbor_coords, pos_rank_in_node,
-                            negative_neighbor_coords, neg_rank_in_node);
-#endif
-  }
-  if(dim !=4){
-    fprintf(stderr, "bad dimension for get_tofu_coood: dim=%d\n");
-    return -1;
-  }
+  int mapid=call_get_tofu_coord_and_tni(myrank, my_coords, coords_org, coords_size, coords_min, coords_max,
+                                        rank_coord, rank_size,
+                                        positive_neighbor_coords, pos_rank_in_node,
+                                        negative_neighbor_coords, neg_rank_in_node,
+                                        pre_mapid,
+                                        tni_list);
 
-  if(mapid>=0){ // found a proper rank map
+
+  if(mapid<0){
+    if(myrank==0){
+      fprintf(stderr, "no rank map is found:  [A,B,C,X,Y,Z]=[%d,%d,%d,%d,%d,%d]\n", coords_size[DirA_], coords_size[DirB_], coords_size[DirC_], coords_size[DirX_], coords_size[DirY_], coords_size[DirZ_]);
+    }
+  } else {
+    print_coords_and_tni(myrank, my_coords, rank_coord,
+                         positive_neighbor_coords, negative_neighbor_coords,
+                         tni_list);
+
     if(myrank==0){
       int flag=0;
-      for(int i=0; i<dim; i++){
+      for(int i=0; i<4; i++){
         if(rank_coord[i] != 0) { flag++; }
       }
       if(flag !=0 ){
@@ -281,4 +360,3 @@ int get_tofu_coord(uint8_t *my_coords, int *rank_coord, int *rank_size,
   return mapid;
 }
 
-#endif

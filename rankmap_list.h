@@ -58,4 +58,48 @@
 #define RANKMAP_240RACK  3 // 20x16x24
 #define RANKMAP_TOPOLOGY_Y 4 // use predefined TBxTY
 
+#define RANKMAP_OPEN_XYZ 10
+#define RANKMAP_OPEN_XY  11
+#define RANKMAP_OPEN_Y   12
+
+enum {DirX_=0, DirY_, DirZ_, DirA_, DirB_, DirC_};
+
+#include <stdint.h>
+
+int get_tofu_coord_and_tni_openXYZ(const int myrank, const uint8_t *my_coords,
+                                   const uint8_t *coords_org, const uint8_t *coords_size,
+                                   const uint8_t *coords_min, const uint8_t *coords_max,
+                                   int *rank_coord, int *rank_size,
+                                   uint8_t (*positive_neighbor_coords)[6], int *pos_rank_in_node,
+                                   uint8_t (*negative_neighbor_coords)[6], int *neg_rank_in_node,
+                                   int *tni_list,
+                                   int DirX, int DirY, int DirZ);
+
+int get_tofu_coord_and_tni_openXY(const int myrank, const uint8_t *my_coords,
+                                  const uint8_t *coords_org, const uint8_t *coords_size,
+                                  const uint8_t *coords_min, const uint8_t *coords_max,
+                                  int *rank_coord, int *rank_size,
+                                  uint8_t (*positive_neighbor_coords)[6], int *pos_rank_in_node,
+                                  uint8_t (*negative_neighbor_coords)[6], int *neg_rank_in_node,
+                                  int *tni_list,
+                                  int DirX, int DirY, int DirZ);
+
+int get_tofu_coord_and_tni_openY(const int myrank, const uint8_t *my_coords,
+                                 const uint8_t *coords_org, const uint8_t *coords_size,
+                                 const uint8_t *coords_min, const uint8_t *coords_max,
+                                 int *rank_coord, int *rank_size,
+                                 uint8_t (*positive_neighbor_coords)[6], int *pos_rank_in_node,
+                                 uint8_t (*negative_neighbor_coords)[6], int *neg_rank_in_node,
+                                 int *tni_list,
+                                 int DirX, int DirY, int DirZ);
+
+int get_tofu_coord_and_tni_openY_topology(const int myrank, const uint8_t *my_coords,
+                                          const uint8_t *coords_org, const uint8_t *coords_size,
+                                          const uint8_t *coords_min, const uint8_t *coords_max,
+                                          int *rank_coord, int *rank_size,
+                                          uint8_t (*positive_neighbor_coords)[6], int *pos_rank_in_node,
+                                          uint8_t (*negative_neighbor_coords)[6], int *neg_rank_in_node,
+                                          int *tni_list,
+                                          int DirX, int DirY, int DirZ);
+
 #endif

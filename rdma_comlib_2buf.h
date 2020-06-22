@@ -257,9 +257,7 @@ class rdma_comlib_2buf{
   static int set_rankmap(int dim){
     int myrank;
     MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
-    if(dim==2){
-      m_rankmap_id=rankmap_lib_set_rankmap2d();
-    } else if(dim==4) {
+    if(dim==4) {
       m_rankmap_id=rankmap_lib_set_rankmap4d();
     } else {
       fprintf(stderr, "err in making rankmap: unkown dim = %d\n",dim);
