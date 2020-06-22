@@ -51,7 +51,7 @@
 1) version information => VERSION
 
 2) compile
-make
+make (or make -j _N_ for parallel make)
 
 3) clean
 make clean
@@ -60,21 +60,21 @@ make clean
 5) vector length for single prec. array (SIMD width/32) 5th line of qws.h
 6) it could be better to repalce functions of  qwsintrin.h by SIMD instructions
 
-7) 4D local lattice size, (lx ...), proc. num (px ...) tolerance of outer and inner DD solver 
+7) 4D local lattice size, (lx ...), proc. num (px ...) tolerance of outer and inner DD solver of BiCGStab 
 are arguments of test program. When tol<0, iter will be maxiter and solution may become NaN
-#      lx ly lz lt px py pz pt tolerance(outer) tolerance(inner)
-./main 16  4  4  4  1  1  1  1            1e-14            1e-6
+#      lx ly lz lt px py pz pt tol(outer) tol(inner) maxiter+1(outer) maxiter(inner)
+./main 16  4  4  4  1  1  1  1      1e-14       1e-6               10            100
 
 8) test cases
-             ./main  4 1 1 1   1 1 1 1    -1   -1 > CASE_4111_1111    # with vlend=vlens=2
-             ./main  4 1 1 1   1 1 1 1    -1   -1 > CASE_4111_1111_HP # with vlend=vlens=2, half_prec
-mpirun -n 1  ./main 32 6 4 3   1 1 1 1    -1   -1 > CASE0
-mpirun -n 2  ./main 32 6 4 3   1 1 1 2    -1   -1 > CASE1
-mpirun -n 2  ./main 32 3 4 4   1 1 1 2    -1   -1 > CASE2
-mpirun -n 2  ./main 32 3 6 4   1 1 1 2    -1   -1 > CASE3
-mpirun -n 2  ./main 32 6 6 2   1 1 1 2    -1   -1 > CASE4
-mpirun -n 2  ./main 32 6 6 4   1 1 1 2    -1   -1 > CASE5
-mpirun -n 2  ./main 32 6 6 8   1 1 1 2    -1   -1 > CASE6
-mpirun -n 8  ./main 32 6 4 3   1 2 2 2    -1   -1 > CASE7
-mpirun -n 16 ./main 32 6 4 3   4 4 1 1    -1   -1 > CASE8
-mpirun -n 16 ./main 32 6 4 3   1 1 4 4    -1   -1 > CASE9
+             ./main  4 1 1 1   1 1 1 1    -1   -1  6 50 > CASE_4111_1111    # with vlend=vlens=2
+             ./main  4 1 1 1   1 1 1 1    -1   -1  6 50 > CASE_4111_1111_HP # with vlend=vlens=2, half_prec
+mpirun -n 1  ./main 32 6 4 3   1 1 1 1    -1   -1  6 50 > CASE0
+mpirun -n 2  ./main 32 6 4 3   1 1 1 2    -1   -1  6 50 > CASE1
+mpirun -n 2  ./main 32 3 4 4   1 1 1 2    -1   -1  6 50 > CASE2
+mpirun -n 2  ./main 32 3 6 4   1 1 1 2    -1   -1  6 50 > CASE3
+mpirun -n 2  ./main 32 6 6 2   1 1 1 2    -1   -1  6 50 > CASE4
+mpirun -n 2  ./main 32 6 6 4   1 1 1 2    -1   -1  6 50 > CASE5
+mpirun -n 2  ./main 32 6 6 8   1 1 1 2    -1   -1  6 50 > CASE6
+mpirun -n 8  ./main 32 6 4 3   1 2 2 2    -1   -1  6 50 > CASE7
+mpirun -n 16 ./main 32 6 4 3   4 4 1 1    -1   -1  6 50 > CASE8
+mpirun -n 16 ./main 32 6 4 3   1 1 4 4    -1   -1  6 50 > CASE9
