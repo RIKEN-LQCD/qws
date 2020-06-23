@@ -61,7 +61,9 @@
 #define MAXCHAR 64
 
 //extern int nodeid_f;
-int nodeid_f=0;
+//int nodeid_f=0;
+extern int rank;
+extern FILE *para_outputfile;
 
 typedef
 struct timing_node
@@ -89,14 +91,14 @@ void check_timing_ (const char *id)
 #endif
   if (id == NULL)
     {
-      printf ("%8s\t%-32s\t%8s\t%12s\t%12s\n",
+      fprintf (para_outputfile, "%8s\t%-32s\t%8s\t%12s\t%12s\n",
               "rank","func_id", "calls", "total(s)", "average(s)");
       for (;;)
         {
           timing_list *old = cur;
           if (cur == NULL || cur->id == NULL) break;
-          printf ("%8d\t%-32s\t%8ld\t%12.6e\t%12.6e\n",
-                  nodeid_f,
+          fprintf (para_outputfile, "%8d\t%-32s\t%8ld\t%12.6e\t%12.6e\n",
+                  rank,
                   cur->id,
                   cur->call_number,
                   cur->total_time,
