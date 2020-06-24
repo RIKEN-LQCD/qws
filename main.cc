@@ -118,6 +118,7 @@ extern __attribute__((aligned(64))) pclvd_t clvd;
 extern __attribute__((aligned(64))) pglus_t glus;
 extern __attribute__((aligned(64))) pclvs_t clvs;
 
+extern FILE *para_outputfile;
 
 void generate_random_fields(void);
 void generate_random_sc(scd_t *outd, scs_t *outs);
@@ -372,11 +373,11 @@ int main( int argc, char *argv[] ){
 #endif
 
 #ifdef _CHECK_TIMING
-  if(rank==0)printf("\n");
-  if(rank==0)printf("\n");
+  fprintf(para_outputfile, "\n");
+  fprintf(para_outputfile, "\n");
   // ------------------------- print timing
-  if(rank==0)printf("print timing\n");
-  if(rank==0)print_timing_();
+  fprintf(para_outputfile, "print timing\n");
+  print_timing_();
 #endif
   //#ifdef _CHECK_PA
   PROF_FINALIZE;

@@ -110,7 +110,7 @@ extern "C"{
     scd_t* t = (scd_t*)malloc( sizeof(scd_t) * vold*2);
     scd_t* u = (scd_t*)malloc( sizeof(scd_t) * vold*2);
     scd_t* r0 = (scd_t*)malloc( sizeof(scd_t) * vold*2);
-    double bnorm, rnorm, xnorm, rtmp0, rtmp1, rtmp2, redu[3];
+    double bnorm, rnorm, rtmp0, rtmp1, rtmp2, redu[3];
     complex< double > rho0, rho, beta, omega, alpha, ctmp;
     //rvecd_t rvd0, rvd1, rvd2, rvd3, rvd4, rvd5;
     //rvecd_t xr, xi, rr, ri, pr, pi;
@@ -223,6 +223,7 @@ extern "C"{
 #endif
       rnorm = redu[0];
 
+#ifdef _CHECK_
       // |x|  for check 
       rtmp0 = 0;
 #pragma omp parallel for reduction(+:rtmp0)
@@ -237,13 +238,12 @@ extern "C"{
 #ifdef _MPI_
       MPI_Allreduce(MPI_IN_PLACE,(void *)redu,1,MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD);
 #endif
-      xnorm = redu[0];
-
-#ifdef _CHECK_
+      double xnorm = redu[0];
       if (rank==0)printf("@D %5d %24.15e %24.15e\n", mult_count_all, sqrt(rnorm/bnorm), xnorm);
       check_residual_dd(x,b,&mult_count_all,&bnorm);
-#endif
       if (rank==0)printf("iter = %d, rnorm = %24.14e, sqrt(rnorm/bnorm) = %24.14e, xnorm = %24.14e\n", iter, rnorm, sqrt(rnorm/bnorm), xnorm);
+#endif
+
       if (sqrt(rnorm/bnorm) < *tol){break;}
       // u = Mr
       // t = Au
@@ -310,6 +310,7 @@ extern "C"{
 #endif
       rnorm = redu[0];
 
+#ifdef _CHECK_
       // |x|  for check 
       rtmp0 = 0;
 #pragma omp parallel for reduction(+:rtmp0)
@@ -325,12 +326,11 @@ extern "C"{
       MPI_Allreduce(MPI_IN_PLACE,(void *)redu,1,MPI_DOUBLE_PRECISION,MPI_SUM,MPI_COMM_WORLD);
 #endif
       xnorm = redu[0];
-
-#ifdef _CHECK_
       if (rank==0)printf("@D %5d %24.15e %24.15e\n", mult_count_all, sqrt(rnorm/bnorm), xnorm);
       check_residual_dd(x,b,&mult_count_all,&bnorm);
-#endif
       if (rank==0)printf("iter = %d, rnorm = %24.14e, sqrt(rnorm/bnorm) = %24.14e, xnorm = %24.14e\n", iter, rnorm, sqrt(rnorm/bnorm), xnorm);
+#endif
+
       if (sqrt(rnorm/bnorm) < *tol){break;}
 
       // rho = <r0,r>
