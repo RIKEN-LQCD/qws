@@ -47,6 +47,8 @@
 ##  using the Supercomputer Fugaku.
 ##
 ##****************************************************************************************
+GITVERSION=$(shell git log -1 --format="%H")
+#===============================================================================
 # set default options for Fugaku benchmark
 fugaku_benchmark=1
 benchmark_240rack=
@@ -69,7 +71,7 @@ half_prec =
 #path to half precision library required in non clang mode
 #libhalf=$(HOME)/opt/half-1.12.0/include
 #rdma [,utofu, utofu_threaded, mpi_rankmap]  (todo: fjmpi)
-rdma      =
+rdma      =utofu_threaded
 #clangmode : clang mode for fujitsu compiler
 clang     =
 #Power API : Power API for Fugaku and FX1000
@@ -77,7 +79,7 @@ powerapi  =1
 #Barrier before Allreduce
 bar_reduc =1
 #COMPILE_TIME_DIM_SIZE
-fixedsize =
+fixedsize =1
 #rankmap specification [, 240rack, 330rack]
 rankmap =
 
@@ -517,6 +519,7 @@ clean:
 	rm -f main libqws.a
 
 qws.o: qws.h clover_d.h clover_s.h clover_def.h
+	$(CXX) $(CXXFLAGS) $(MYFLAGS) $(CPPFLAGS) -DVERSION=\"$(GITVERSION)\" -c -o qws.o qws.cc
 qws_xbound_nompi.o: qws.h
 qws_xbound_mpi.o: qws.h
 qws_xbound_rdma.o: qws.h rdma_utofu_comlib.h rdma_comlib_2buf.h get_tni.h rankmap_lib_utofu.o get_tni_4d.o get_tofu_coord.o get_tofu_coord_4d.o

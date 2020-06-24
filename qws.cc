@@ -194,6 +194,8 @@ extern "C"{
     size = 1;
 #endif
 
+    if(rank==0)printf("QWS git commit hash : %s\n",VERSION);
+
     if (size != npe[0]*npe[1]*npe[2]*npe[3]) {
       printf("MPI size /= npe[0]*npe[1]*npe[2]*npe[3]\n size=%d, npe[0]*npe[1]*npe[2]*npe[3]=%d\nStop.\n",size,npe[0]*npe[1]*npe[2]*npe[3]);
 #ifdef _MPI_
