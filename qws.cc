@@ -121,7 +121,7 @@ extern "C"{
   block_map_t* block_map;
   int num_blocks;
 
-  FILE *para_outputfile;
+  FILE *para_outputfile=0;
 #ifdef _POWER_API_
   extern void power_api_init();
   extern void power_api_finalize();
@@ -200,6 +200,9 @@ extern "C"{
       MPI_Finalize();
 #endif
     }
+    char filename[21];
+    sprintf(filename, "output_rank%06d.txt", rank);
+    para_outputfile = fopen(filename, "w");
 
     int map_id=-1;
     int rank_coords[4];
@@ -298,9 +301,6 @@ extern "C"{
     }
 
 
-    char filename[21];
-    sprintf(filename, "output_rank%06d.txt", rank);
-    para_outputfile = fopen(filename, "w");
 #ifdef _POWER_API_
     power_api_init();
 #endif

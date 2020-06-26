@@ -154,8 +154,9 @@ int get_tofu_coord_and_tni_openY(const int myrank, const uint8_t *my_coords,
   //  int TNI_Yp[12]={2,0, 2,0, 2,0, 2,0, 2,0,... 2,0};  // 2 for loop back;  TC, TZd
   int TNI_Yp[32]={0};
   n=0;
-  while(n<size_y){
-    TNI_Yp[n] = 2; n+=2; // loop back
+  while(n<size_y*2){
+    TNI_Yp[n] = 2; n++; // loop back
+    TNI_Yp[n] = 0; n++;
   }
 
   // QY-  : uses peridicity of TZd
@@ -168,9 +169,10 @@ int get_tofu_coord_and_tni_openY(const int myrank, const uint8_t *my_coords,
   //            1
   //int TNI_Ym[12]={1,3, 1,3,..., 1,3};  // 3 for loop back
   int TNI_Ym[32]={1};
-  n=1;
-  while(n<size_y){
-    TNI_Ym[n]=3; n+=2;  // loop back
+  n=0;
+  while(n<size_y*2){
+    TNI_Ym[n]=1; n++;
+    TNI_Ym[n]=3; n++;  // loop back
   }
 
 
@@ -188,7 +190,11 @@ int get_tofu_coord_and_tni_openY(const int myrank, const uint8_t *my_coords,
   //  ^                     | 2
   //  |_____________________|
   //
-  int TNI_Zp[48]={2};  // 2 for loop back as well; TX
+  int TNI_Zp[48];
+  n=0;
+  while(n<size_z*2){
+    TNI_Zp[n]=2; n++;   // 2 for loop back as well; TX
+  }
 
   // QZ-: use torus in TX
   //      the loop back to the same node is not depicted in th figure
@@ -197,7 +203,11 @@ int get_tofu_coord_and_tni_openY(const int myrank, const uint8_t *my_coords,
   // 3|                    ^
   //  |____________________|
   //
-  int TNI_Zm[48]={3};  // 3 for loop back as well
+  int TNI_Zm[48];
+  n=0;
+  while(n<size_z*2){
+    TNI_Zm[n]=3; n++;  // 3 for loop back as well
+  }
 
 
   /////////////////////////////////////////////
@@ -253,6 +263,7 @@ int get_tofu_coord_and_tni_openY(const int myrank, const uint8_t *my_coords,
   //  ... <---+<--
   //        4
   int TNI_Tp[66]={4}; // TB, TY
+  for(int i=0; i<size_t; i++) {TNI_Tp[i] = 4; }
 
   // QT-  : uses peridicity of TB
   //
@@ -275,6 +286,7 @@ int get_tofu_coord_and_tni_openY(const int myrank, const uint8_t *my_coords,
   //  ...---> +---
   //      5
   int TNI_Tm[66]={5}; // TB, TY
+  for(int i=0; i<size_t; i++) {TNI_Tm[i] = 5; }
 
   const int Dir[6]={DirA,DirB,DirC,DirX,DirY,DirZ};
   const int *Tmap[7]={TA,TB,TC,TX,TY,TZc,TZd};
@@ -297,6 +309,17 @@ int get_tofu_coord_and_tni_openY(const int myrank, const uint8_t *my_coords,
   for(int dir2=0; dir2<8; dir2++){
     int coord=rank_coord[dir2/2];
     tni_list[dir2]=tni_list_full[dir2][coord];
+  }
+  if(myrank==0){
+    printf("tni map (rankid=%d)\n", myrank);
+    for(int dir2=0; dir2<8; dir2++){
+      printf(" dir=%d:", dir2);
+      for(int i=0; i<rank_size[dir2/2]; i++) {
+        printf(" %d",tni_list_full[dir2][i]);
+      }
+      printf("\n");
+    }
+    fflush(stdout);
   }
 
   return RANKMAP_OPEN_Y;

@@ -155,11 +155,11 @@ int get_tofu_coord_and_tni_openXYZ(const int myrank, const uint8_t *my_coords,
   n=0;
   TNI_Yp[n]=2; n++;
   TNI_Yp[n]=1; n++;
-  while(n<size_y/2+2){
+  while(n<size_y+2){
     TNI_Yp[n]=2; n++;
     TNI_Yp[n]=0; n++;
   }
-  while(n<size_y){
+  while(n<2*size_y){
     TNI_Yp[n]=2; n++;
     TNI_Yp[n]=1; n++;
   }
@@ -175,15 +175,15 @@ int get_tofu_coord_and_tni_openXYZ(const int myrank, const uint8_t *my_coords,
   //int TNI_Ym[12]={0,3, 1,3, 1,3, 1,3, 0,3, 0,3};  // 3 for loop back
   int TNI_Ym[32]={0};
   n=0;
-  TNI_Yp[n]=3; n++;
-  TNI_Yp[n]=0; n++;
-  while(n<size_y/2+2){
-    TNI_Yp[n]=3; n++;
-    TNI_Yp[n]=1; n++;
+  TNI_Ym[n]=0; n++;
+  TNI_Ym[n]=3; n++;
+  while(n<size_y+2){
+    TNI_Ym[n]=1; n++;
+    TNI_Ym[n]=3; n++;
   }
-  while(n<size_y){
-    TNI_Yp[n]=3; n++;
-    TNI_Yp[n]=0; n++;
+  while(n<size_y*2){
+    TNI_Ym[n]=0; n++;
+    TNI_Ym[n]=3; n++;
   }
 
 
@@ -262,7 +262,8 @@ int get_tofu_coord_and_tni_openXYZ(const int myrank, const uint8_t *my_coords,
   // 4|                            \|    |
   //  o <---+ <---+ <---+ <---+ <---+    ---->TY
   //       4
-  int TNI_Tp[_MAX_TXxTY]={4}; // TX, TY
+  int TNI_Tp[_MAX_TXxTY]; // TX, TY
+  for(int i=0; i<_MAX_TXxTY; i++) {TNI_Tp[i] = 4; }
 
   // QT-  (coordinate: clockwise, sending direction: counter-clockwise)
   //      5                          5
@@ -279,10 +280,14 @@ int get_tofu_coord_and_tni_openXYZ(const int myrank, const uint8_t *my_coords,
   // \|                             |5   |
   //  o---> +---> +---> +---> +---> +    ---->TY
   //    5
-  int TNI_Tm[_MAX_TXxTY]={5}; // TX, TY
+  int TNI_Tm[_MAX_TXxTY]; // TX, TY
+  for(int i=0; i<_MAX_TXxTY; i++) {TNI_Tm[i] = 5; }
 
-  const int Dir[6]={DirA,DirX,DirC,DirB,DirY,DirZ};  // X and B are flipped
+  const int Dir[6]={DirA,DirX,DirC,DirB,DirY,DirZ};
   const int *Tmap[7]={TA,TX,TC,TB,TY,TZc,TZd};       // X and B are flipped
+  //  const int Dir[6]={DirA,DirB,DirC,DirX,DirY,DirZ};  // X and B are flipped
+  //  const int *Tmap[7]={TA,TB,TC,TX,TY,TZc,TZd};       // X and B are flipped
+
   const int Nsize[4]={size_x,size_y,size_z,size_t};
   print_tofu(myrank, Dir,Tmap, Nsize, coords_size);
 
@@ -299,9 +304,21 @@ int get_tofu_coord_and_tni_openXYZ(const int myrank, const uint8_t *my_coords,
 
   // tni list
   const int *tni_list_full[8]={TNI_Xp, TNI_Xm, TNI_Yp, TNI_Ym, TNI_Zp, TNI_Zm, TNI_Tp, TNI_Tm};
+
   for(int dir2=0; dir2<8; dir2++){
     int coord=rank_coord[dir2/2];
     tni_list[dir2]=tni_list_full[dir2][coord];
+  }
+  if(myrank==0){
+    printf("tni map (rankid=%d)\n", myrank);
+    for(int dir2=0; dir2<8; dir2++){
+      printf(" dir=%d:", dir2);
+      for(int i=0; i<rank_size[dir2/2]; i++) {
+        printf(" %d",tni_list_full[dir2][i]);
+      }
+      printf("\n");
+    }
+    fflush(stdout);
   }
 
   return RANKMAP_OPEN_XYZ;

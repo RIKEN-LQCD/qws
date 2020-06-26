@@ -270,165 +270,6 @@ void print_tofu_openXYZ(const int myrank, const int **Tmap, const int *Nsize, co
 
 }
 
-int set_neighbors_openXYZ(const int myrank, const uint8_t *my_coords,
-                          const uint8_t *coords_org, const uint8_t *coords_size,
-                          const uint8_t *coords_min, const uint8_t *coords_max,
-                          int *rank_coord, int *rank_size,
-                          uint8_t (*positive_neighbor_coords)[6], int *pos_rank_in_node,
-                          uint8_t (*negative_neighbor_coords)[6], int *neg_rank_in_node,
-                          const int *Dir,
-                          const int **Tmap, const int *Nsize){
-
-  const int proc_per_node=4;
-  const int pny_in_node=2;
-  const int pnz_in_node=2;
-
-  const int *TA=Tmap[0];
-  const int *TB=Tmap[1];
-  const int *TC=Tmap[2];
-  const int *TX=Tmap[3];
-  const int *TY=Tmap[4];
-  const int *TZc=Tmap[5];
-  const int *TZd=Tmap[6];
-
-  const int size_x=Nsize[0];
-  const int size_y=Nsize[1];
-  const int size_z=Nsize[2];
-  const int size_t=Nsize[3];
-
-  const int DirX=Dir[0];
-  const int DirY=Dir[1];
-  const int DirZ=Dir[2];
-  const int DirA=Dir[3];
-  const int DirB=Dir[4];
-  const int DirC=Dir[5];
-
-  ///////////////////////////////////////////////////////////////////
-  //
-  // find the 4d rank coordiante of this rank
-  //
-  // rank_in_node:
-  // ^ QZ
-  // |   2  3
-  // |   0  1
-  // ---------> QY
-  // 2x2 in each node
-  int rank_in_node=myrank % proc_per_node;
-  int py=rank_in_node%pny_in_node;
-  int pz=rank_in_node/pny_in_node;
-
-  // rank size in each direction
-  rank_size[0] = size_x;
-  rank_size[1] = pny_in_node*size_y;
-  rank_size[2] = pnz_in_node*size_z;
-  rank_size[3] = size_t;
-
-  ///////////////////////////////////////////////////////////////////
-  //
-  // move to the relative tofu coordiantes
-  //
-  int rcoords[6]; // relative tofu coordinates
-  int size[6];    // tofu size
-  get_relative_coords(rcoords, size, my_coords, coords_org, coords_size, coords_min, coords_max);
-
-  // divide Tz into continuous and discrete
-  int rcoords_Zc=rcoords[DirZ]%3; // continuous
-  int rcoords_Zd=rcoords[DirZ]/3; // discrete
-
-  // look up the node coordinate
-  int node_x=lookup2(rcoords[DirA], TA, rcoords_Zc, TZc, size_x);
-  int node_y=lookup2(rcoords[DirC], TC, rcoords_Zd, TZd, size_y);
-  int node_z=lookup1(rcoords[DirB], TB, size_z);
-  int node_t=lookup2(rcoords[DirX], TX, rcoords[DirY], TY, size_t);
-  if(!node_coords_is_ok(myrank, rcoords, node_x, node_y, node_z, node_t)){
-    return RANKMAP_NODE_NOT_FOUND;
-  }
-
-  // logical coordinate
-  rank_coord[0]=node_x;
-  rank_coord[1]=2 * node_y + py;
-  rank_coord[2]=2 * node_z + pz;
-  rank_coord[3]=node_t;
-
-  ///////////////////////////////////////////////////////////////////
-  //
-  // neighbors
-  //
-  for(int i=0; i<6; i++){
-    for(int dir=0; dir<4; dir++){
-      positive_neighbor_coords[dir][i]=rcoords[i];
-      negative_neighbor_coords[dir][i]=rcoords[i];
-    }
-  }
-
-  //
-  // x-direction
-  //
-  int dir=0;
-  int xf=(rank_coord[dir]+1) % rank_size[dir];
-  int xb=(rank_coord[dir]-1+rank_size[dir]) % rank_size[dir];
-  positive_neighbor_coords[dir][DirA]=TA[xf];
-  positive_neighbor_coords[dir][DirZ]=3*rcoords_Zd + TZc[xf];
-  negative_neighbor_coords[dir][DirA]=TA[xb];
-  negative_neighbor_coords[dir][DirZ]=3*rcoords_Zd + TZc[xb];
-  pos_rank_in_node[dir]=rank_in_node;
-  neg_rank_in_node[dir]=rank_in_node;
-
-  //
-  // y-direction : has inner node ranks
-  //
-  dir=1;
-  int yf=(rank_coord[dir]+1) % rank_size[dir];
-  int yb=(rank_coord[dir]-1+rank_size[dir]) % rank_size[dir];
-  int pyf=yf % pny_in_node;
-  int pyb=yb % pny_in_node;
-  yf/=pny_in_node;
-  yb/=pny_in_node;
-  positive_neighbor_coords[dir][DirC]=TC[yf];
-  positive_neighbor_coords[dir][DirZ]=3*TZd[yf] + rcoords_Zc;
-  negative_neighbor_coords[dir][DirC]=TC[yb];
-  negative_neighbor_coords[dir][DirZ]=3*TZd[yb] + rcoords_Zc;
-  pos_rank_in_node[dir] = pyf + pz*pny_in_node;
-  neg_rank_in_node[dir] = pyb + pz*pny_in_node;
-
-  //
-  // z-direction : has inner node ranks
-  //
-  dir=2;
-  int zf=(rank_coord[dir]+1) % rank_size[dir];
-  int zb=(rank_coord[dir]-1+rank_size[dir]) % rank_size[dir];
-  int pzf=zf % pnz_in_node;
-  int pzb=zb % pnz_in_node;
-  zf/=pnz_in_node;
-  zb/=pnz_in_node;
-  positive_neighbor_coords[dir][DirX]=TX[zf];
-  negative_neighbor_coords[dir][DirX]=TX[zb];
-  pos_rank_in_node[dir] = py + pzf*pny_in_node;
-  neg_rank_in_node[dir] = py + pzb*pny_in_node;
-
-  //
-  // t-direction
-  //
-  dir=3;
-  int tf=(rank_coord[dir]+1) % size_t;
-  int tb=(rank_coord[dir]-1+size_t) % size_t;
-  positive_neighbor_coords[dir][DirB]=TB[tf];
-  positive_neighbor_coords[dir][DirY]=TY[tf];
-  negative_neighbor_coords[dir][DirB]=TB[tb];
-  negative_neighbor_coords[dir][DirY]=TY[tb];
-  pos_rank_in_node[dir]=rank_in_node;
-  neg_rank_in_node[dir]=rank_in_node;
-
-  ///////////////////////////////////////////////////////////////////
-  //
-  // back to the absolute tofu coordiantes
-  //
-  to_absolute_coords(positive_neighbor_coords, coords_org, coords_size, coords_min, coords_max);
-  to_absolute_coords(negative_neighbor_coords, coords_org, coords_size, coords_min, coords_max);
-
-  return 1;
-}
-
 
 
 int set_neighbors(const int myrank, const uint8_t *my_coords,
@@ -467,6 +308,7 @@ int set_neighbors(const int myrank, const uint8_t *my_coords,
   const int DirY=Dir[4];
   const int DirZ=Dir[5];
 
+
   ///////////////////////////////////////////////////////////////////
   //
   // find the 4d rank coordiante of this rank
@@ -502,8 +344,8 @@ int set_neighbors(const int myrank, const uint8_t *my_coords,
   // look up the node coordinate
   int node_x=lookup2(rcoords[DirA], TA, rcoords_Zc, TZc, size_x);
   int node_y=lookup2(rcoords[DirC], TC, rcoords_Zd, TZd, size_y);
-  int node_z=lookup1(rcoords[DirB], TB, size_z);
-  int node_t=lookup2(rcoords[DirX], TX, rcoords[DirY], TY, size_t);
+  int node_z=lookup1(rcoords[DirX], TX, size_z);
+  int node_t=lookup2(rcoords[DirB], TB, rcoords[DirY], TY, size_t);
   if(!node_coords_is_ok(myrank, rcoords, node_x, node_y, node_z, node_t)){
     return RANKMAP_NODE_NOT_FOUND;
   }
@@ -607,7 +449,7 @@ void print_tofu(const int myrank, const int *Dir, const int **Tmap, const int *N
   const int DirC=DirC_;
   const int DirB=DirB_;
 
-  if(Dir[0] == DirB_){ // shuriked map: TX and TB are flipped
+  if(Dir[3] == DirB_){ // shuriked map: TX and TB are flipped
     const int *TA=Tmap[0];
     const int *TX=Tmap[1]; //  not TB
     const int *TC=Tmap[2];

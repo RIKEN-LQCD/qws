@@ -229,7 +229,7 @@ int call_get_tofu_coord_and_tni(const int myrank, const uint8_t *my_coords,
      (size[DirX_] * size[DirY_]  % 2 == 0)
      && (size[DirZ_] == 24) ) {
     if(myrank==0){
-       printf("get_tofu_coord_and_tni: map as (X,Y,Z,A,B,C)=(*,*,3n,2,3,2) with X x Y = even\n");
+       printf("get_tofu_coord_and_tni: map as (X,Y,Z,A,B,C)=(*,*,24,2,3,2) with X x Y = even\n");
      }
     return get_tofu_coord_and_tni_openXY(myrank, my_coords, coords_org, coords_size, coords_min, coords_max,
                                          rank_coord, rank_size,
