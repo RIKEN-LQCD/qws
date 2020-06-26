@@ -191,16 +191,13 @@ int call_get_tofu_coord_and_tni(const int myrank, const uint8_t *my_coords,
         printf("get_tofu_coord_and_tni: RANKMAP_TOPOLOGY_Y is given, (X,Y,Z,A,B,C)=(24,*,24,2,*,2)\n");
         fprintf(stderr, "map for topology_y is not yet ready\n");
       }
-      MPI_Barrier(MPI_COMM_WORLD);
-      MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
-      /*
-      return get_tofu_coord_and_tni_topology_y(myrank, my_coords, coords_org, coords_size, coords_min, coords_max,
+
+      return get_tofu_coord_and_tni_openY_topology(myrank, my_coords, coords_org, coords_size, coords_min, coords_max,
                                                rank_coord, rank_size,
                                                positive_neighbor_coords, pos_rank_in_node,
                                                negative_neighbor_coords, neg_rank_in_node,
                                                tni_list,
                                                DirX_, DirY_, DirZ_);
-      */
     }
     if(myrank==0){
       printf("get_tofu_coord_and_tni: RANKMAP_TOPOLOGY_Y requires (X,Y,Z,A,B,C)=(24,*,24,2,*,2), but X and/or Y are not.\n");
