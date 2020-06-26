@@ -66,10 +66,11 @@ void get_relative_coords(int *rcoords, int *size,
                          const uint8_t *coords_org, const uint8_t *coords_size,
                          const uint8_t *coords_min, const uint8_t *coords_max){
   for(int i=0; i<6; i++){
-    if(my_coords[i] < coords_org[i]){ // using torus
+    rcoords[i] = my_coords[i] - coords_org[i];
+    if( (i == DirX_ || i == DirZ_ || i == DirB_)
+        && (my_coords[i] < coords_org[i])
+        ){ // using torus
       rcoords[i] = (coords_max[i] + 1 + my_coords[i] - coords_min[i]) - coords_org[i];
-    } else {
-      rcoords[i] = my_coords[i] - coords_org[i];
     }
     size[i]=coords_size[i];
   }
@@ -82,7 +83,9 @@ void to_absolute_coords(uint8_t (*neighbor_coords)[6],
   for(int dir=0; dir <4; dir++){
     for(int i=0; i<6; i++){
       neighbor_coords[dir][i]+=coords_org[i];
-      if(neighbor_coords[dir][i]>coords_max[i]){ // using the torus
+      if( (i == DirX_ || i == DirZ_ || i == DirB_)
+          && (neighbor_coords[dir][i]>coords_max[i])
+          ){ // using the torus
         neighbor_coords[dir][i]-=(coords_max[i]+1);
         neighbor_coords[dir][i]+=coords_min[i];
       }

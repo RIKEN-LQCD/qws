@@ -56,7 +56,7 @@
 #include "rankmap_list.h"
 #include "get_tofu_coord_common.h"
 
-
+//#define TEST_TOPOLOGPY_Y
 
 
 #define TOFU_MAX_IN_1AXIS 32
@@ -184,13 +184,18 @@ int call_get_tofu_coord_and_tni(const int myrank, const uint8_t *my_coords,
   }
 
   if( pre_mapid == RANKMAP_TOPOLOGY_Y ){
+#ifdef TEST_TOPOLOGPY_Y
+    if ( size[DirA_] == 2 && size[DirC_] == 2 && (size[DirZ_] % 3 == 0) ){
+      if(myrank==0){
+        printf("get_tofu_coord_and_tni: RANKMAP_TOPOLOGY_Y is given (TEST), (X,Y,Z,A,B,C)=(*,*,3n,2,*,2)\n");
+      }
+#else
     if ( size[DirX_] == 24 && size[DirZ_] == 24
          && size[DirA_] == 2 && size[DirC_] == 2){
       if(myrank==0){
         printf("get_tofu_coord_and_tni: RANKMAP_TOPOLOGY_Y is given, (X,Y,Z,A,B,C)=(24,*,24,2,*,2)\n");
-        fprintf(stderr, "map for topology_y is not yet ready\n");
       }
-
+#endif
       return get_tofu_coord_and_tni_openY_topology(myrank, my_coords, coords_org, coords_size, coords_min, coords_max,
                                                rank_coord, rank_size,
                                                positive_neighbor_coords, pos_rank_in_node,

@@ -186,7 +186,13 @@ int get_tofu_coord_and_tni_openY_topology(const int myrank, const uint8_t *my_co
   // QZ
   /////////////////////////////////////////////
   int TX[24]={0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,23};
-  int size_z=24;  // node size in z-direction
+  int size_z=coords_size[DirX];
+  //  int size_z=24;  // node size in z-direction
+  if(size_z != 24){
+    if(myrank == 0){
+      fprintf(stderr, "Warning: size_z is not 24, are you testing this map with a shurinked setting?\n");
+    }
+  }
 
   // QZ+: use torus in TX
   //      the loop back to the same node is not depicted in th figure
