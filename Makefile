@@ -60,11 +60,11 @@ compiler  =fujitsu_cross
 #arch [fx100, postk, skylake, ofp, thunderx2, simulator]
 arch      =postk
 #profiler [timing, fapp, fpcoll, pa] (nondisclousure: timing2)
-profiler  =timing2
+profiler  =timing
 timing2_path=/home/g9300001/u93022/opt/timing2_para.o
 prof_selective=
 #target [jinv, in, pre, pos, other, all, all_calc, overlapped, send, send_post, recv, reduc1, reduc2, reduc3]
-target    =send
+target    =
 half_prec =
 #path to half precision library required in non clang mode
 #libhalf=$(HOME)/opt/half-1.12.0/include
