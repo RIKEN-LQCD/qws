@@ -192,6 +192,7 @@ void rdma_comlib_init(void)
 #ifdef RDMA_NO_REMOTE_MRQ_POLLING
       printf("RDMA_NO_REMOTE_MRQ_POLLING is defined.\n");
 #endif
+      fflush(stdout);
     }
     m_rdma_comlib_is_initialized = 1;
 

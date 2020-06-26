@@ -173,6 +173,7 @@ void print_coords_and_tni(int myrank, const uint8_t *my_coords,
       fprintf(para_outputfile, "dir=%d: backward, tofu = %2d %2d %2d %2d %2d %2d , tni = %d\n",
               dir, n[0],n[1],n[2],n[3],n[4],n[5], tni_list[2*dir+1]);
     }
+    fflush(para_outputfile);
   }
 }
 

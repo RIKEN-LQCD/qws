@@ -213,6 +213,7 @@ extern "C"{
 
     if (size == 1){
       printf("single %d\n", rank);
+      fflush(stdout);
       px=0;    py=0;    pz=0;    pt=0;
       domain_e = ( py + pz + pt)%2;
       domain_o = 1 - domain_e;
@@ -220,12 +221,14 @@ extern "C"{
       if(map_id>=0){ //
 	  if(rank==0){
 	    printf("rankmap is found: map_id=%d\n", map_id);
+            fflush(stdout);
 	  }
 
 	  if(npe[0] != rank_size[0] ||npe[1] != rank_size[1] ||
 	     npe[2] != rank_size[2] ||npe[3] != rank_size[3] ){
 	    if(rank==0){
 	      printf("  WARNING!!! new rank size: %d %d %d %d\n", rank_size[0], rank_size[1], rank_size[2], rank_size[3]);
+              fflush(stdout);
 	    }
 	  }
 	for(int i=0; i<4; i++){
@@ -275,7 +278,7 @@ extern "C"{
       printf("MPI rank=%d ptf=%d ptb=%d (forward and backward ranks in T-dir)\n", rank, ptf, ptb);
       printf("MPI rank=%d domain_e=%d\n", rank, domain_e);
       printf("MPI rank=%d domain_o=%d\n", rank, domain_o);
-      fflush(0);
+      fflush(stdout);
 #endif
 
     }
@@ -464,7 +467,10 @@ extern "C"{
 #ifdef _MPI_
     MPI_Allreduce(MPI_IN_PLACE, &rtmp0,1,MPI_DOUBLE,MPI_SUM,MPI_COMM_WORLD);
 #endif
-    if(rank==0)printf("%30s : %24.14e\n", a, rtmp0);
+    if(rank==0){
+      printf("%30s : %24.14e\n", a, rtmp0);
+      fflush(stdout);
+    }
   }
   //----------------------------------------------------------------------------
   void print_scsnorm2(char* a, scs_t* in, int size){
@@ -481,7 +487,10 @@ extern "C"{
 #ifdef _MPI_
     MPI_Allreduce(MPI_IN_PLACE, &rtmp0,1,MPI_REAL,MPI_SUM,MPI_COMM_WORLD);
 #endif
-    if(rank==0)printf("%30s : %24.14e\n", a, rtmp0);
+    if(rank==0){
+      printf("%30s : %24.14e\n", a, rtmp0);
+      fflush(stdout);
+    }
   }
   //----------------------------------------------------------------------------------------
   //----------------------------------------------------------------------------------------

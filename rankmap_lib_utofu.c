@@ -497,6 +497,7 @@ int rankmap_lib_set_rankmap4d() {
 
   if(myrank==0){
     printf("rdma_utofu_comlib: 4d rankmap, size = %d x %d x %d x %d\n", rank_size[0], rank_size[1], rank_size[2], rank_size[3]);
+    fflush(stdout);
   }
 
 #ifdef _RANKMAP_DEBUG
@@ -584,7 +585,7 @@ int rankmap_lib_set_rankmap4d() {
   }
   if(myrank==0){
     printf("rdma_utofu_comlib: 4d rankmap is ready: mapid=%d\n", mapid);
-    fflush(0);
+    fflush(stdout);
   }
 
   return mapid;
