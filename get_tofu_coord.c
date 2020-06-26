@@ -62,7 +62,6 @@
 #define TOFU_MAX_IN_1AXIS 32
 int check_tofu_volume(const uint8_t *my_coords, uint8_t *coords_org, uint8_t *coords_size, uint8_t *coords_min, uint8_t *coords_max, int *np){
 
-
   int myrank;
   MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
   MPI_Comm_size(MPI_COMM_WORLD, np);
@@ -200,7 +199,7 @@ int call_get_tofu_coord_and_tni(const int myrank, const uint8_t *my_coords,
                                                DirX_, DirY_, DirZ_);
     }
     if(myrank==0){
-      printf("get_tofu_coord_and_tni: RANKMAP_TOPOLOGY_Y requires (X,Y,Z,A,B,C)=(24,*,24,2,*,2), but X and/or Y are not.\n");
+      printf("get_tofu_coord_and_tni: RANKMAP_TOPOLOGY_Y requires (X,Y,Z,A,B,C)=(24,*,24,2,*,2), but X and/or Z are not.\n");
     }
     return -1;
   }
@@ -313,7 +312,9 @@ int get_tofu_coord_and_tni(uint8_t *my_coords, int *rank_coord, int *rank_size,
   int pre_mapid=check_tofu_volume(my_coords, coords_org, coords_size,
                                   coords_min, coords_max, &np_available);
   if(pre_mapid<0){
-    fprintf(stderr, "rank %d: Failed at check_tofu_volume()! err=%d\n", myrank, pre_mapid);
+    if(myrank==0){
+      fprintf(stderr, "rank %d: Failed at check_tofu_volume()! err=%d\n", myrank, pre_mapid);
+    }
     //    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
     return pre_mapid;
   }

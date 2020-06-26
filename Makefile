@@ -306,7 +306,7 @@ endif
 	$(CC) $(CPPFLAGS) $< -c
 
 # communications
-OBJS_UTOFU = rdma_utofu_comlib.o rankmap_lib_utofu.o get_tofu_coord_common.o get_tofu_coord.o get_tofu_coord_openXYZ.o get_tofu_coord_openXY.o get_tofu_coord_openY.o get_tofu_coord_openY_topology.o
+OBJS_UTOFU = rdma_utofu_comlib.o rankmap_lib_utofu.o get_tofu_coord_common.o get_tofu_coord.o get_tofu_coord_openXYZ.o get_tofu_coord_openXY.o get_tofu_coord_openY.o get_tofu_coord_openY_topology.o get_tni_default.o
 
 ifdef mpi
   ifndef rdma

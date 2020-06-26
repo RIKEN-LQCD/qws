@@ -64,7 +64,7 @@ volatile uint8_t m_rankmap_lib_mytofu_offset[6];
 volatile int m_rankmap_lib_myrank_in_node;
 volatile int m_rankmap_lib_dim;
 volatile int m_rankmap_lib_neighbor_rank_in_node[8];
-int m_rankmap_lib_tni_list[8];
+volatile int m_rankmap_lib_tni_list[8];
 
 
 // get_tofu_coord.c
@@ -79,10 +79,10 @@ int get_tofu_coord_and_tni(uint8_t *my_coords, int *rank_coord, int *rank_size,
 //                   uint8_t (*negative_neighbor_coords)[6], int *neg_rank_in_node, 
 //                   const int dim);
 
-int get_tni_list(int *tni,
-                 const int myrank,
-                 const int *myrank_coords, const int *myrank_size,
-                 const int flag);
+int get_tni_list_default(int *tni,
+                         const int myrank,
+                         const int *myrank_coords, const int *myrank_size,
+                         const int flag);
 
 
 ///////////////////////////////////////////////
@@ -483,14 +483,17 @@ int rankmap_lib_set_rankmap4d() {
   uint8_t my_coords[6];      // Tofu coordinate of this rank
   int rank_coord[4];         // logical rank coordiante
   int rank_size[4];          // logical rank size
+  int tni_list[8];
 
-
-  int mapid=get_tofu_coord_and_tni(my_coords, rank_coord, rank_size, &pos_coords[0], pos_rank_in_node, &neg_coords[0], neg_rank_in_node, m_rankmap_lib_tni_list);
+  int mapid=get_tofu_coord_and_tni(my_coords, rank_coord, rank_size, &pos_coords[0], pos_rank_in_node, &neg_coords[0], neg_rank_in_node, tni_list);
   if(mapid<0){
     //fprintf(stderr, "rank %d: Failed at get_tofu_coord()! err=%d\n", myrank, err);
     if(myrank==0){
       fprintf(stderr, "WARNING: no rank map is found.\n");
     }
+    get_tni_list_default(tni_list, myrank, rank_coord, rank_size, mapid);
+    for(int dir2=0; dir2<8; dir2++){m_rankmap_lib_tni_list[dir2]=tni_list[dir2];}
+
     return mapid;
     //    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
   }
@@ -541,6 +544,8 @@ int rankmap_lib_set_rankmap4d() {
     m_rankmap_lib_neighbor_ranks[2*dir+1] = neg_ranks[dir];
     m_rankmap_lib_neighbor_rank_in_node[2*dir  ] = pos_ranks[dir] % proc_per_node;
     m_rankmap_lib_neighbor_rank_in_node[2*dir+1] = neg_ranks[dir] % proc_per_node;
+    m_rankmap_lib_tni_list[2*dir]=tni_list[2*dir];
+    m_rankmap_lib_tni_list[2*dir+1]=tni_list[2*dir+1];
     for(int i=0; i<6; i++){
       m_rankmap_lib_neighbor_tofu[2*dir  ][i] = pos_coords[dir][i];
       m_rankmap_lib_neighbor_tofu[2*dir+1][i] = neg_coords[dir][i];
@@ -592,9 +597,16 @@ int rankmap_lib_set_rankmap4d() {
 }
 
 int rankmap_lib_get_tni_list(int *tni_list, const int *flag){
+  int myrank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
+
+  if(myrank==0){
+    fprintf(stderr, "rankmap_lib: calling get_tni_list for dim=%d, flag=%d\n", m_rankmap_lib_dim, *flag);
+  }
   for(int dir2=0; dir2<2*m_rankmap_lib_dim; dir2++){
     tni_list[dir2] = m_rankmap_lib_tni_list[dir2];
   }
+
   return 0;
 
 }
