@@ -328,9 +328,9 @@ static inline void ddd_out_pre_s_noprl(scs_t* __restrict__  in, int* __restrict_
 #endif // _THREADED_RDMA
   if(is_timer_enabled) {
 #if PROF_TARGET == TARGET_SEND ||  PROF_TARGET == TARGET_OVERLAPPED || PROF_TARGET == TARGET_RECV
+    _COMLIB_ISEND_ALL_C_TOC_;
 #pragma omp barrier
 #endif
-    _COMLIB_ISEND_ALL_C_TOC_;
     _OVERLAPPED_CALC_TIC_;
     _COMLIB_IRECV_ALL_C_TIC_;
   }
