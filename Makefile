@@ -51,8 +51,6 @@ GITVERSION=$(shell git log -1 --format="%H")
 #===============================================================================
 # set default options for Fugaku benchmark
 fugaku_benchmark=1
-benchmark_240rack=
-benchmark_330rack=
 #===============================================================================
 debug     =
 mpi       =1
@@ -63,7 +61,7 @@ compiler  =fujitsu_cross
 arch      =postk
 #profiler [timing, fapp, fpcoll, pa] (nondisclousure: timing2)
 profiler  =timing
-#timing2_path=/home/g9300001/u93022/opt/timing2_para.o
+timing2_path=/home/g9300001/u93022/opt/timing2_para.o
 prof_selective=
 #target [jinv, in, pre, pos, other, all, all_calc, overlapped, send, send_post, recv, reduc1, reduc2, reduc3]
 target    =
@@ -80,8 +78,6 @@ powerapi  =1
 bar_reduc =1
 #COMPILE_TIME_DIM_SIZE
 fixedsize =1
-#rankmap specification [, 240rack, 330rack]
-rankmap =
 
 #===============================================================================
 # set default options for Fugaku benchmark
@@ -101,13 +97,6 @@ clang     =
 powerapi  =1
 bar_reduc =
 fixedsize =1
-rankmap =
-ifdef benchmark_240rack
-rankmap =240rack
-endif
-ifdef benchmark_330rack
-rankmap =330rack
-endif
 endif
 #===============================================================================
 REFIX    =.
@@ -210,13 +199,6 @@ else ifeq ($(compiler),fujitsu_cross)
     endif
     MYFLAGS   = -D_MPI_ $(RDMA_FLAGS)
 
-    # 240rack and 330rack use the same macro
-    ifeq ($(rankmap),240rack)
-        MYFLAGS += -D_USE_RANKMAP_240RACK
-    endif
-    ifeq ($(rankmap),330rack)
-        MYFLAGS += -D_USE_RANKMAP_240RACK
-    endif
     MYFLAGS    += -D_NO_OMP_SINGLE  # error avoiding
   else
     CC        = fccpx
@@ -324,6 +306,8 @@ endif
 	$(CC) $(CPPFLAGS) $< -c
 
 # communications
+OBJS_UTOFU = rdma_utofu_comlib.o rankmap_lib_utofu.o get_tofu_coord_common.o get_tofu_coord.o get_tofu_coord_openXYZ.o get_tofu_coord_openXY.o get_tofu_coord_openY.o get_tofu_coord_openY_topology.o get_tni_default.o
+
 ifdef mpi
   ifndef rdma
     OBJS_XBOUND = qws_xbound_mpi.o
@@ -331,15 +315,15 @@ ifdef mpi
   endif
   ifeq ($(rdma),utofu)
     OBJS_XBOUND = qws_xbound_rdma.o
-    OBJS_COMM = $(OBJS_XBOUND) rdma_utofu_comlib.o rankmap_lib_utofu.o get_tni_4d.o get_tofu_coord.o get_tofu_coord_4d.o rdma_comlib_2buf.o
+    OBJS_COMM = $(OBJS_XBOUND) $(OBJS_UTOFU) rdma_comlib_2buf.o
   endif
   ifeq ($(rdma),utofu_threaded)
     OBJS_XBOUND = qws_xbound_rdma.o
-    OBJS_COMM = $(OBJS_XBOUND) rdma_utofu_comlib.o rankmap_lib_utofu.o get_tni_4d.o get_tofu_coord.o get_tofu_coord_4d.o rdma_comlib_2buf.o
+    OBJS_COMM = $(OBJS_XBOUND) $(OBJS_UTOFU) rdma_comlib_2buf.o
   endif
   ifeq ($(rdma),mpi_rankmap)
     OBJS_XBOUND = qws_xbound_mpi.o
-    OBJS_COMM = $(OBJS_XBOUND) rdma_utofu_comlib.o rankmap_lib_utofu.o get_tni_4d.o get_tofu_coord.o get_tofu_coord_4d.o rdma_comlib_2buf.o
+    OBJS_COMM = $(OBJS_XBOUND) $(OBJS_UTOFU) rdma_comlib_2buf.o
   endif
   ifeq ($(rdma),fjmpi)
     OBJS_XBOUND = qws_xbound_rdma.o
@@ -522,7 +506,8 @@ qws.o: qws.h clover_d.h clover_s.h clover_def.h
 	$(CXX) $(CXXFLAGS) $(MYFLAGS) $(CPPFLAGS) -DVERSION=\"$(GITVERSION)\" -c -o qws.o qws.cc
 qws_xbound_nompi.o: qws.h
 qws_xbound_mpi.o: qws.h
-qws_xbound_rdma.o: qws.h rdma_utofu_comlib.h rdma_comlib_2buf.h get_tni.h rankmap_lib_utofu.o get_tni_4d.o get_tofu_coord.o get_tofu_coord_4d.o
+qws_xbound_rdma.o: qws.h rdma_utofu_comlib.h rdma_comlib_2buf.h rankmap_lib_utofu.o get_tofu_coord.o
+get_tofu_coord.o: get_tofu_coord_common.o get_tofu_coord_common.h get_tofu_coord_openXYZ.o get_tofu_coord_openXY.o get_tofu_coord_openY.o
 qws_bqcd.o: qws.h
 bicgstab.o: qws.h
 bicgstab_dd_s.o: qws.h

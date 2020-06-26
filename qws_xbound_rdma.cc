@@ -294,7 +294,7 @@ extern "C"{
         printf("rank=%d: tni_list[%d] = %d\n",rank, i,tni_list[i]);
       }
       printf("rank=%d: pxf=%d, pxb=%d, pyf=%d, pyb=%d, pzf=%d, pzb=%d, ptf=%d, ptb=%d\n", rank, pxf, pxb, pyf, pyb, pzf, pzb, ptf, ptb);
-      fflush(0);
+      fflush(stdout);
     }
 
     size_t size=sizeof(projscs1_t)*ny*nz*nt;
@@ -306,7 +306,7 @@ extern "C"{
     //   to/from pxb: tni_list[1]
     if(rank==0){
       printf("    swap_vcq_for_sending(buff_rdma[0], buff_rdma[1]), done\n");
-      fflush(0);
+      fflush(stdout);
     }
 
     size=sizeof(projscs_t)*nxs*nz*nt;
@@ -318,7 +318,7 @@ extern "C"{
     //   to/from pyb: tni_list[3]
     if(rank==0){
       printf("    swap_vcq_for_sending(buff_rdma[2], buff_rdma[3]), done\n");
-      fflush(0);
+      fflush(stdout);
     }
 
     size=sizeof(projscs_t)*nxs*ny*nt;
@@ -330,7 +330,7 @@ extern "C"{
     //   to/from pzb: tni_list[5]
     if(rank==0){
       printf("    swap_vcq_for_sending(buff_rdma[4], buff_rdma[5]), done\n");
-      fflush(0);
+      fflush(stdout);
     }
 
     size=sizeof(projscs_t)*nxs*ny*nz;
@@ -344,7 +344,7 @@ extern "C"{
     //   to/from ptb: tni_list[7]
     if(rank==0){
       printf("    swap_vcq_for_sending(buff_rdma[6], buff_rdma[7]), done\n");
-      fflush(0);
+      fflush(stdout);
     }
 
     xfs_send=(projscs1_t*)buff_rdma[0].sbuff();
@@ -360,13 +360,13 @@ extern "C"{
 
     if(rank==0){
       printf("    set_parity, recv_updateall, done\n");
-      fflush(0);
+      fflush(stdout);
     }
 
     MPI_Barrier(MPI_COMM_WORLD);
     if(rank==0){
       printf("qws_xbound is ready (rdma version).\n");
-      fflush(0);
+      fflush(stdout);
     }
   }
 
