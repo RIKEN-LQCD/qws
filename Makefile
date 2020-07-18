@@ -259,7 +259,7 @@ else ifeq ($(arch),postk)
        ifndef clang
           MYFLAGS += -DINLINE_ASM_UNAVAILABLE -DARCH_POSTK
        else
-          MYFLAGS += -DINLINE_ASM_UNAVAILABLE
+          MYFLAGS += -DINLINE_ASM_UNAVAILABLE -DARCH_POSTK
        endif
        ifdef fixedsize
           MYFLAGS += -DCOMPILE_TIME_DIM_SIZE -DNX=32 -DNY=6 -DNZ=4 -DNT=3
