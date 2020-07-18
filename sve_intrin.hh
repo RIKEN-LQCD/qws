@@ -60,13 +60,13 @@ typedef svbool_t pred_t;
 
 #define fload1_s(pred, head, dims, ...) \
   svld1_vnum_f32(pred, \
-                 ((const float*)(head)) + addressing<-8, 7, dims, __VA_ARGS__>::base*VLENS, \
-                 addressing<-8, 7, dims, __VA_ARGS__>::index)
+		 (((const float*)(head)) + addressing<-8, 7, dims, __VA_ARGS__>::base*VLENS), \
+		 (addressing<-8, 7, dims, __VA_ARGS__>::index))
 
 #define fstore1_s(pred, data, head, dims, ...) \
   svst1_vnum_f32(pred, \
-                 ((float*)(head)) + addressing<-8, 7, dims, __VA_ARGS__>::base*VLENS, \
-                 addressing<-8, 7, dims, __VA_ARGS__>::index, \
+		 (((float*)(head)) + addressing<-8, 7, dims, __VA_ARGS__>::base*VLENS), \
+		 (addressing<-8, 7, dims, __VA_ARGS__>::index),		\
                  data)
 
 #define fmul_s(pred, x, y) \

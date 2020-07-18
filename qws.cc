@@ -457,12 +457,11 @@ extern "C"{
   }
   //----------------------------------------------------------------------------
   void print_scdnorm2(const char* a, scd_t* in, int size){
-    rvecd_t rvd0;
     double rtmp0 = 0;
-#pragma omp parallel for private(rvd0) reduction(+:rtmp0)
+#pragma omp parallel for reduction(+:rtmp0)
     for(int i=0; i<size; i++){
       for(int j=0; j<24; j++){
-	rvd0 = fmul_d(in[i].ccs[j],in[i].ccs[j]);
+	rvecd_t rvd0 = fmul_d(in[i].ccs[j],in[i].ccs[j]);
 	rtmp0 += fsum_d(rvd0);
       }
     }
@@ -476,13 +475,12 @@ extern "C"{
   }
   //----------------------------------------------------------------------------
   void print_scsnorm2(char* a, scs_t* in, int size){
-    vecs_t rvd0;
     float rtmp0 = 0;
-#pragma omp parallel for private(rvd0) reduction(+:rtmp0)
+#pragma omp parallel for reduction(+:rtmp0)
     for(int i=0; i<size; i++){
       for(int j=0; j<24; j++){
         vecs_t v = fload1_s(pred_true_all(), &(in[i].ccs[j]), dims_1d, 0);
-        rvd0 = fmul_s(pred_true_all(), v, v);
+        vecs_t rvd0 = fmul_s(pred_true_all(), v, v);
         rtmp0 += fsum_s(pred_true_all(), rvd0);
       }
     }
