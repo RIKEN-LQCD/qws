@@ -239,7 +239,7 @@ else ifeq ($(compiler),gnu)
     CC       += -fopenmp
     CXX      += -fopenmp
   endif
-  MYFLAGS    += -D_CHECK_TIMING -D_MPI_
+  MYFLAGS    += -D_CHECK_TIMING
   CFLAGS      = -g
   CXXFLAGS    = $(CFLAGS) -std=gnu++11
   CXXFLAGS_A  = $(CFLAGS) -std=gnu++11

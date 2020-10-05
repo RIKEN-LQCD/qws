@@ -138,6 +138,11 @@ extern "C"{
     }
   }
 
+ //---------------------------------------------------------------------------------------- get rankmap
+  int xbound_get_rankmap(int myrank, int *rank_coords, int *rank_size,
+                         int *rankf, int *rankb) {
+    return -1;  // empty
+  }
   //---------------------------------------------------------------------------------------- init communication
   void xbound_init(int rank,
 		   int pxf, int pyf, int pzf, int ptf,
