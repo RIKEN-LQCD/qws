@@ -1,5 +1,3 @@
-# This is a basic workflow to help you get started with Actions
-
 name: CI
 
 # Controls when the action will run. Triggers the workflow on push or pull request
@@ -12,43 +10,30 @@ on:
 
 # A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
-  build:
-    # The type of runner that the job will run on
+  test-single:
     runs-on: ubuntu-latest
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
+      - name: make with g++
+        run: make -j 2 fugaku_benchmark= omp=1  compiler=gnu arch=skylake rdma= mpi= powerapi=
 
-      # Runs a single command using the runners shell
-      - name: make
-        run: make -j 4 fugaku_benchmark= omp=1  compiler=gnu arch=skylake rdma= mpi= powerapi=
-
-      # Runs a set of commands using the runners shell
-      #- name: make with MPI
+      #- name: checking
       #  run: |
       #    echo $SHELL
       #    mpirun --version
-  build-MPI:
-    # The type of runner that the job will run on
+  test-MPI:
     runs-on: ubuntu-latest
-    # Steps represent a sequence of tasks that will be executed as part of the job
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
       - uses: actions/checkout@v2
-
-      # 
       - name: install openmpi
-        run: apt-get install openmpi-doc openmpi-bin libopenmpi-dev
-
-      # Runs a single command using the runners shell
-      #- name: make
-      #  run: make -j 4 fugaku_benchmark= omp=1  compiler=gnu arch=skylake rdma= mpi= powerapi=
+        run: |
+          sudo apt-get install openmpi-doc openmpi-bin libopenmpi-dev
+          mpicc --version
+          mpirun --version
+      #- name: make with mpic++(g++)
+      #  run: make -j 4 fugaku_benchmark= omp=1  compiler=gnu arch=skylake rdma= mpi=1 powerapi=
 
       # Runs a set of commands using the runners shell
       - name: make with MPI
         run: |
           echo $SHELL
-          mpicc --version
-          mpirun --version
