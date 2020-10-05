@@ -19,7 +19,9 @@ jobs:
       - name: checking
         run: |
           ./main 32 6 4 3   1 1 1 1    -1   -1  6 50 > CASE0
-          diff CASE0 data/CASE0
+          egrep ":  |2     ="  CASE0      | awk '{printf("%30s %30s\n", $1, $NF)}'> res1
+          egrep ":  |2     ="  data/CASE0 | awk '{print $NF}'> res2
+          paste res1 res2
   test-MPI:
     runs-on: ubuntu-latest
     steps:
@@ -27,7 +29,7 @@ jobs:
       - name: install openmpi
         run: sudo apt-get install openmpi-doc openmpi-bin libopenmpi-dev
       - name: make with mpic++(g++)
-        run: make -j 2 fugaku_benchmark= omp=1  compiler=gnu arch=skylake rdma= mpi=1 powerapi=
+        run: make -j 2 fugaku_benchmark= omp=1  compiler=openmpi-gnu arch=skylake rdma= mpi=1 powerapi=
 
       # Runs a set of commands using the runners shell
       - name: make with MPI
