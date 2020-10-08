@@ -14,9 +14,7 @@ jobs:
       - name: checking
         run: |
           ./main 32 6 4 3   1 1 1 1    -1   -1  6 50 > CASE0
-          egrep ":  |2     ="  CASE0      | awk '{printf("%30s %30s\n", $1, $NF)}'> res1
-          egrep ":  |2     ="  data/CASE0 | awk '{print $NF}'> res2
-          paste res1 res2 |awk '{d=sqrt(($2-$3)^2);printf("%27s %22s %22s %e\n", $1, $2, $3, d)}' >res
+	  ./check.sh CASE0 data/CASE0
   test-MPI:
     runs-on: ubuntu-latest
     steps:
@@ -28,9 +26,7 @@ jobs:
       - name: checking
         run: |
           mpirun -np 2 ./main 32 6 4 3   1 1 1 2    -1   -1  6 50 > CASE1
-          egrep ":  |2     ="  CASE1      | awk '{printf("%30s %30s\n", $1, $NF)}'> res1
-          egrep ":  |2     ="  data/CASE1 | awk '{print $NF}'> res2
-          paste res1 res2 |awk '{d=sqrt(($2-$3)^2);printf("%27s %22s %22s %e\n", $1, $2, $3, d)}' >res
+          ./check.sh CASE1 data/CASE1
       # Runs a set of commands using the runners shell
       - name: show env
         run: |
