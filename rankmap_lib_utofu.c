@@ -446,6 +446,65 @@ void exchange_ranks(uint8_t *my_coords,
 
 
 //
+// obtain rank id of the logical neighbors
+//
+void exchange_ranks_with_mpi(int *pos_ranks, int *neg_ranks,
+                             const int *rank_coord, const int *rank_size,
+                             const int dim){
+
+  assert(dim<=4);
+  int myrank;
+  MPI_Comm_rank(MPI_COMM_WORLD, &myrank);
+  int num_ranks;
+  MPI_Comm_size(MPI_COMM_WORLD, &num_ranks);
+
+  int *rank_list_send=(int*)malloc(sizeof(int)*num_ranks);
+  int *rank_list     =(int*)malloc(sizeof(int)*num_ranks);
+  if(!rank_list_send){
+    fprintf(stderr, "rank %d: Failed at malloc for rank_list0.\n", myrank);
+    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+  }
+  if(!rank_list){
+    fprintf(stderr, "rank %d: Failed at malloc for rank_list0.\n", myrank);
+    MPI_Abort(MPI_COMM_WORLD, EXIT_FAILURE);
+  }
+  memset(rank_list_send, 0, sizeof(int)*num_ranks);
+
+  int myid=0;
+  int stride=1;
+  for(int i=0; i<dim; i++){
+    myid+=stride*rank_coord[i];
+    stride*=rank_size[i];
+  }
+  rank_list_send[myid]=myrank;
+
+  MPI_Allreduce(rank_list_send, rank_list, num_ranks, MPI_INT, MPI_SUM, MPI_COMM_WORLD);
+
+  for(int dir=0; dir<dim; dir++){
+    int pos_id=0;
+    int neg_id=0;
+    int stride=1;
+    for(int i=0; i<dim; i++){
+      int pos_coord=rank_coord[i];
+      int neg_coord=rank_coord[i];
+      if(i==dir){
+        pos_coord=(rank_coord[i]+1) % rank_size[i];
+        neg_coord=(rank_coord[i]-1+rank_size[i]) % rank_size[i];
+      }
+      pos_id+=stride*pos_coord;
+      neg_id+=stride*neg_coord;
+      stride*=rank_size[i];
+    }
+    pos_ranks[dir]=rank_list[pos_id];
+    neg_ranks[dir]=rank_list[neg_id];
+  }
+
+  free(rank_list_send);
+  free(rank_list);
+}
+
+
+//
 // utilities for rankmap and tni assignemnt
 //
 void rankmap_lib_get_rankmap(int *myrank_coord, int *neighbors, int *process_size) {
@@ -521,9 +580,11 @@ int rankmap_lib_set_rankmap4d() {
   int pos_ranks[4]; // positive neighbor
   int neg_ranks[4]; // negative neighbor
 
-  exchange_ranks(my_coords, pos_ranks, neg_ranks,
-                 pos_coords, pos_rank_in_node,
-                 dim, proc_per_node);
+  //  exchange_ranks(my_coords, pos_ranks, neg_ranks,
+  //                 pos_coords, pos_rank_in_node,
+  //                 dim, proc_per_node);
+
+  exchange_ranks_with_mpi(pos_ranks, neg_ranks, rank_coord, rank_size, dim);
 
 
   //
