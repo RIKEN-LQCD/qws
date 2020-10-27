@@ -78,7 +78,8 @@ powerapi  =1
 bar_reduc =1
 #COMPILE_TIME_DIM_SIZE
 fixedsize =1
-
+#interfase [bqcd]
+interface =
 #===============================================================================
 # set default options for Fugaku benchmark
 ifdef fugaku_benchmark
@@ -490,12 +491,12 @@ install: $(DELIVERABLES)
 main:$(OBJS) $(MAIN) $(LDFLAGS)
 	$(CXX) -o $@ $(MAIN) $(OBJS) $(SYSLIBS) $(CXXFLAGS) $(LDFLAGS)
 
-ifdef half_prec
+ifdef interface
 libqws.a:$(OBJS) test_qws.o qws_bqcd.o
 	$(AR) $(ARFLAGS) rv $@ $(OBJS) test_qws.o qws_bqcd.o
 else
-libqws.a:$(OBJS) test_qws.o qws_bqcd.o
-	$(AR) $(ARFLAGS) rv $@ $(OBJS) test_qws.o qws_bqcd.o
+libqws.a:$(OBJS)
+	$(AR) $(ARFLAGS) rv $@ $(OBJS)
 endif
 
 clean:
