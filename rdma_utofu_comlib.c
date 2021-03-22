@@ -372,7 +372,7 @@ void rdma_comlib_new_impl(rdma_comlib_data *id, const size_t *size, const int *h
 
   // check arguments
   int err=0;
-  if(has_external){  // check if buffers are allocated externally
+  if(*has_external){  // check if buffers are allocated externally
     if(id->sbuff == NULL){
       fprintf(stderr, "sbuff is not allocated\n");
       err=1;
