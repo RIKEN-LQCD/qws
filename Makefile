@@ -50,7 +50,7 @@
 GITVERSION=$(shell git log -1 --format="%H")
 #===============================================================================
 # set default options for Fugaku benchmark
-fugaku_benchmark=1
+fugaku_benchmark=
 #===============================================================================
 debug     =
 mpi       =1
@@ -61,23 +61,23 @@ compiler  =fujitsu_cross
 arch      =postk
 #profiler [timing, fapp, fpcoll, pa] (nondisclousure: timing2)
 profiler  =timing
-timing2_path=/home/g9300001/u93022/opt/timing2_para.o
+timing2_path=
 prof_selective=
 #target [jinv, in, pre, pos, other, all, all_calc, overlapped, send, send_post, recv, reduc1, reduc2, reduc3]
 target    =
 half_prec =
 #path to half precision library required in non clang mode
 #libhalf=$(HOME)/opt/half-1.12.0/include
-#rdma [,utofu, utofu_threaded, mpi_rankmap]  (todo: fjmpi)
-rdma      =utofu_threaded
+#rdma [,utofu, utofu_threaded, utofu_threaded_norankmap, mpi_rankmap]  (todo: fjmpi)
+rdma      =utofu_threaded_norankmap
 #clangmode : clang mode for fujitsu compiler
 clang     =
 #Power API : Power API for Fugaku and FX1000
-powerapi  =1
+powerapi  =
 #Barrier before Allreduce
-bar_reduc =1
+bar_reduc =
 #COMPILE_TIME_DIM_SIZE
-fixedsize =1
+fixedsize =
 #interfase [bqcd]
 interface =
 #===============================================================================
@@ -187,12 +187,15 @@ else ifeq ($(compiler),fujitsu_cross)
     F90       = mpifrtpx
     RDMA_FLAGS=
     ifeq ($(rdma),utofu)
-        RDMA_FLAGS= -D_RDMA_ -D_UTOFU_RDMA -D_UTOFU_RANKMAP
+        RDMA_FLAGS= -D_RDMA_ -D_USE_RANKMAP -D_UTOFU_RDMA -D_UTOFU_RANKMAP
     endif
     ifeq ($(rdma),utofu_threaded)
-        RDMA_FLAGS= -D_RDMA_ -D_UTOFU_RDMA -D_UTOFU_RANKMAP -D_THREADED_RDMA
+        RDMA_FLAGS= -D_RDMA_ -D_USE_RANKMAP -D_UTOFU_RDMA -D_UTOFU_RANKMAP -D_THREADED_RDMA
     endif
-    ifeq ($(rdma),mpi_rankmap)
+    ifeq ($(rdma),utofu_threaded_norankmap)
+        RDMA_FLAGS= -D_RDMA_ -D_UTOFU_RDMA -D_THREADED_RDMA
+    endif
+   ifeq ($(rdma),mpi_rankmap)
         RDMA_FLAGS= -D_USE_RANKMAP -D_RDMA_ -D_UTOFU_RANKMAP
     endif
     ifeq ($(rdma),fjmpi)
@@ -322,7 +325,11 @@ ifdef mpi
     OBJS_XBOUND = qws_xbound_rdma.o
     OBJS_COMM = $(OBJS_XBOUND) $(OBJS_UTOFU) rdma_comlib_2buf.o
   endif
-  ifeq ($(rdma),mpi_rankmap)
+  ifeq ($(rdma),utofu_threaded_norankmap)
+    OBJS_XBOUND = qws_xbound_rdma.o
+    OBJS_COMM = $(OBJS_XBOUND) $(OBJS_UTOFU) rdma_comlib_2buf.o
+  endif
+ifeq ($(rdma),mpi_rankmap)
     OBJS_XBOUND = qws_xbound_mpi.o
     OBJS_COMM = $(OBJS_XBOUND) $(OBJS_UTOFU) rdma_comlib_2buf.o
   endif

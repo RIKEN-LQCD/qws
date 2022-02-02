@@ -89,14 +89,24 @@ int get_tni_list_default(int *tni, const int myrank,
     printf("using the default tni assignment\n");
     fflush(stdout);
   }
-  int TNI_Xp[1]={0}; // from +x direction
-  int TNI_Xm[1]={0}; // from -x direction
-  int TNI_Yp[1]={1}; // from +y direction
-  int TNI_Ym[1]={2}; // from -y direction
-  int TNI_Zp[1]={3}; // from +z direction
-  int TNI_Zm[1]={4}; // from -z direction
-  int TNI_Tp[1]={5}; // from +t direction
-  int TNI_Tm[1]={5}; // from -t direction
+  //  int TNI_Xp[1]={0}; // from +x direction
+  //  int TNI_Xm[1]={0}; // from -x direction
+  //  int TNI_Yp[1]={1}; // from +y direction
+  //  int TNI_Ym[1]={2}; // from -y direction
+  //  int TNI_Zp[1]={3}; // from +z direction
+  //  int TNI_Zm[1]={4}; // from -z direction
+  //  int TNI_Tp[1]={5}; // from +t direction
+  //  int TNI_Tm[1]={5}; // from -t direction
+  int tmp = (myrank % 4) * 8 ;  // assume 4 MPI proc./node
+  int TNI_Xp[1]={(0+tmp) % 6}; // from +x direction
+  int TNI_Xm[1]={(1+tmp) % 6}; // from -x direction
+  int TNI_Yp[1]={(2+tmp) % 6}; // from +y direction
+  int TNI_Ym[1]={(3+tmp) % 6}; // from -y direction
+  int TNI_Zp[1]={(4+tmp) % 6}; // from +z direction
+  int TNI_Zm[1]={(5+tmp) % 6}; // from -z direction
+  int TNI_Tp[1]={(6+tmp) % 6}; // from +t direction
+  int TNI_Tm[1]={(7+tmp) % 6}; // from -t direction
+
   const int *TNI_list[8]={TNI_Xp, TNI_Xm, TNI_Yp, TNI_Ym,
                           TNI_Zp, TNI_Zm, TNI_Tp, TNI_Tm};
   for(int dir2=0; dir2<8; dir2++){
@@ -104,5 +114,6 @@ int get_tni_list_default(int *tni, const int myrank,
   }
   //  const int TNI_size[8]={1,1,1,1,1,1,1,1};
   //  return get_tni_set(tni, myrank, rank_coords, rank_size, TNI_list, TNI_size);
+  return -1;
 }
 
