@@ -329,7 +329,9 @@ extern "C"{
     power_api_finalize();
 #endif
 #ifdef _CHECK_TIMING
+#ifdef _TIMING_EACH_RANK
     if(!para_outputfile)fclose(para_outputfile);
+#endif 
 #endif
   }
 
