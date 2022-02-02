@@ -544,7 +544,11 @@ int rankmap_lib_set_rankmap4d() {
   int rank_size[4];          // logical rank size
   int tni_list[8];
 
+#ifdef _USE_RANKMAP
   int mapid=get_tofu_coord_and_tni(my_coords, rank_coord, rank_size, &pos_coords[0], pos_rank_in_node, &neg_coords[0], neg_rank_in_node, tni_list);
+#else
+  int mapid=-1;
+#endif
   if(mapid<0){
     //fprintf(stderr, "rank %d: Failed at get_tofu_coord()! err=%d\n", myrank, err);
     if(myrank==0){
