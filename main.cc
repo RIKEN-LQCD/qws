@@ -372,14 +372,18 @@ int main( int argc, char *argv[] ){
   ///////////////////////////////////
 #endif
 
-#ifdef _CHECK_TIMING2
-  fprintf(para_outputfile, "\n");
-  fprintf(para_outputfile, "\n");
-  // ------------------------- print timing
-  fprintf(para_outputfile, "print timing\n");
-  print_timing_();
-#elif defined(_CHECK_TIMING)
-  print_timing_();
+#ifdef _CHECK_TIMING
+  if(para_outputfile){
+    fprintf(para_outputfile, "\n");
+    fprintf(para_outputfile, "\n");
+    // ------------------------- print timing
+    fprintf(para_outputfile, "print timing\n");
+  } else {
+    if(rank==0)printf("\n");
+    if(rank==0)printf("\n");
+    if(rank==0)printf("print timing\n");
+    if(rank==0)print_timing_();
+  }
 #endif
 
   //#ifdef _CHECK_PA

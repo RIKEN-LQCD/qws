@@ -84,6 +84,9 @@ void check_timing_ (const char *id)
   double clock_now = get_clock ();
   timing_list *cur;
 
+  FILE *outputfile = stdout;
+  if(para_outputfile) outputfile = para_outputfile;
+  
   if (tl == NULL) tl = init_timing_node ();
   cur = tl;
 #ifdef _OPENMP
@@ -91,13 +94,13 @@ void check_timing_ (const char *id)
 #endif
   if (id == NULL)
     {
-      fprintf (para_outputfile, "%8s\t%-32s\t%8s\t%12s\t%12s\n",
+      fprintf (outputfile, "%8s\t%-32s\t%8s\t%12s\t%12s\n",
               "rank","func_id", "calls", "total(s)", "average(s)");
       for (;;)
         {
           timing_list *old = cur;
           if (cur == NULL || cur->id == NULL) break;
-          fprintf (para_outputfile, "%8d\t%-32s\t%8ld\t%12.6e\t%12.6e\n",
+          fprintf (outputfile, "%8d\t%-32s\t%8ld\t%12.6e\t%12.6e\n",
                   rank,
                   cur->id,
                   cur->call_number,

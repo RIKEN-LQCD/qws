@@ -202,10 +202,12 @@ extern "C"{
       MPI_Finalize();
 #endif
     }
-#ifdef _CHECK_TIMING2
+#ifdef _CHECK_TIMING
+#ifdef _TIMING_EACH_RANK
     char filename[21];
     sprintf(filename, "output_rank%06d.txt", rank);
     para_outputfile = fopen(filename, "w");
+#endif
 #endif
 
     int map_id=-1;
@@ -326,8 +328,8 @@ extern "C"{
 #ifdef _POWER_API_
     power_api_finalize();
 #endif
-#ifdef _CHECK_TIMING2
-    fclose(para_outputfile);
+#ifdef _CHECK_TIMING
+    if(!para_outputfile)fclose(para_outputfile);
 #endif
   }
 
