@@ -376,6 +376,13 @@ extern "C"{
       }
     }//iter
     *conviter = iter;
+
+    free(q);
+    free(r);
+    free(p);
+    free(t);
+    free(u);
+    free(r0);
   }//bicgstab
 
 
