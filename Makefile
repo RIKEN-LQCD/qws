@@ -171,7 +171,7 @@ else ifeq ($(compiler),intel)
   endif
   MYFLAGS    += -D_CHECK_TIMING
   ifeq ($(arch),skylake)
-     CFLAGS   = -O3 -xCORE-AVX512 -fno-alias -qopt-zmm-usage=high -Wno-unknown-pragmas
+     CFLAGS   = -O3 -xCORE-AVX512 -fno-alias -qopt-zmm-usage=high -Wno-unknown-pragmas -DARCH_AVX512
   else ifeq ($(arch),ofp)
      CFLAGS   = -O3 -xKNL -fno-alias -qopt-zmm-usage=high -Wno-unknown-pragmas
   endif

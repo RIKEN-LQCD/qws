@@ -55,6 +55,8 @@
 
 #ifdef ARCH_POSTK
 #include "sve_intrin.hh"
+#elif defined(ARCH_AVX512)
+#include "avx512_intrin.hh"
 #else
 
 typedef rvecs_t vecs_t;
