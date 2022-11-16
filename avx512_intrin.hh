@@ -47,7 +47,6 @@
 //  using the Supercomputer Fugaku.
 //
 //****************************************************************************************
-// FUJITSU CONFIDENTIAL info for target apps for priority issues(Detailed Design(4))
 
 #pragma once
 
