@@ -449,7 +449,7 @@ ifeq ($(profiler),fpcoll)
   CFLAGS += -D_FPCOLL
 endif
 ifeq ($(profiler),fapp)
-  CFLAGS += -D_FAPP -Nlinkprof
+  CFLAGS += -D_FAPP -Nfjprof
 endif
 ifeq ($(profiler),pa)
   CFLAGS += -D_CHECK_PA -I$(PATH_LIBREADPIC)/libreadpic
