@@ -134,9 +134,9 @@ ifeq ($(compiler),openmpi-gnu)
   endif
 else ifeq ($(compiler),fujitsu_native)
   ifdef mpi
-    CC        = mpicc
-    CXX       = mpicxx
-    F90       = mpif90
+    CC        = mpifcc
+    CXX       = mpiFCC
+    F90       = mpifrt
     MYFLAGS   = -D_MPI_
   else
     CC        = fcc
