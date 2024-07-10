@@ -132,54 +132,6 @@ ifeq ($(compiler),openmpi-gnu)
     CXXFLAGS   += -fopenmp
     CXXFLAGS_A += -fopenmp
   endif
-else ifeq ($(compiler),fujitsu_native)
-  ifdef mpi
-    CC        = mpifcc
-    CXX       = mpiFCC
-    F90       = mpifrt
-    MYFLAGS   = -D_MPI_
-  else
-    CC        = fcc
-    CXX       = FCC
-    F90       = frt
-  endif
-  CFLAGS      = -Xg -Kfast,restp=all,optmsg=2,ocl,preex,noeval,noprefetch,noswp -Nline,lst=t
-  CXXFLAGS    = $(CFLAGS) -std=gnu++11
-  CXXFLAGS_A  = $(CFLAGS) -std=gnu++11
-  LDFLAGS     =
-  SYSLIBS     =
-  ifdef omp
-    CFLAGS   += -Kopenmp
-    CXXFLAGS += -Kopenmp
-    CXXFLAGS_A += -Kopenmp
-  endif
-else ifeq ($(compiler),intel)
-  ifdef mpi
-    CC        = mpiicc
-    CXX       = mpiicpc
-    F90       = mpiifort
-    MYFLAGS   = -D_MPI_
-    MYFLAGS  += -D_NO_OMP_SINGLE  # error avoiding
-  else
-    CC        = icc
-    CXX       = icpc
-    F90       = ifort
-  endif
-  ifdef omp
-    CC       += -qopenmp
-    CXX      += -qopenmp
-  endif
-  MYFLAGS    += -D_CHECK_TIMING
-  ifeq ($(arch),skylake)
-     CFLAGS   = -O3 -xCORE-AVX512 -fno-alias -qopt-zmm-usage=high -Wno-unknown-pragmas -DARCH_AVX512
-  else ifeq ($(arch),ofp)
-     CFLAGS   = -O3 -xKNL -fno-alias -qopt-zmm-usage=high -Wno-unknown-pragmas
-  endif
-  CXXFLAGS    = $(CFLAGS) -std=gnu++11
-  CXXFLAGS_A  = $(CFLAGS) -std=gnu++11
-  CFLAGS     += -std=gnu99
-  LDFLAGS     =
-  SYSLIBS     =
 else ifeq ($(compiler),fujitsu_cross)
   ifdef mpi
     CC        = mpifccpx
@@ -235,6 +187,88 @@ else ifeq ($(compiler),fujitsu_cross)
     CC       += -Kopenmp
     CXX      += -Kopenmp
   endif
+else ifeq ($(compiler),fujitsu_native)
+  ifdef mpi
+    CC        = mpifcc
+    CXX       = mpiFCC
+    F90       = mpifrt
+    RDMA_FLAGS=
+    ifeq ($(rdma),utofu)
+        RDMA_FLAGS= -D_RDMA_ -D_USE_RANKMAP -D_UTOFU_RDMA -D_UTOFU_RANKMAP
+    endif
+    ifeq ($(rdma),utofu_threaded)
+        RDMA_FLAGS= -D_RDMA_ -D_USE_RANKMAP -D_UTOFU_RDMA -D_UTOFU_RANKMAP -D_THREADED_RDMA
+    endif
+    ifeq ($(rdma),utofu_threaded_norankmap)
+        RDMA_FLAGS= -D_RDMA_ -D_UTOFU_RDMA -D_THREADED_RDMA
+    endif
+   ifeq ($(rdma),mpi_rankmap)
+        RDMA_FLAGS= -D_USE_RANKMAP -D_RDMA_ -D_UTOFU_RANKMAP
+    endif
+    ifeq ($(rdma),fjmpi)
+        RDMA_FLAGS= -D_RDMA_ -D_HPC_RDMA
+    endif
+    MYFLAGS   = -D_MPI_ $(RDMA_FLAGS)
+
+    MYFLAGS    += -D_NO_OMP_SINGLE  # error avoiding
+  else
+    CC        = fcc
+    CXX       = FCC
+    F90       = frt
+  endif
+  ifndef clang
+    CFLAGS      = -Kfast,restp=all,optmsg=2,ocl,preex,noprefetch,noswp -Nline,lst=t
+    CFLAGS      = -Kfast,restp=all,optmsg=2,ocl,preex,noprefetch,noswp -Nline,lst=t -Nfjomplib -Kilfunc=loop -Krdconv=2
+    CFLAGS      = -Kfast,restp=all,optmsg=2,ocl,preex,noprefetch,noswp -Nline,lst=t -Nnofjprof -Nfjomplib -Kilfunc=loop -Krdconv=2
+    CXXFLAGS    = $(CFLAGS) -std=gnu++11
+    CXXFLAGS_A  = $(CFLAGS) -std=gnu++11 -Knosch_pre_ra,nosch_post_ra -Knoeval
+  else
+    ## clang mode
+    CFLAGS      = -Nclang -mcpu=a64fx+sve -Ofast  -Koptmsg=2,preex,noprefetch -Nnofjprof  -Kilfunc=loop -ffj-line -ffj-lst=t 
+    CXXFLAGS    = $(CFLAGS) -stdlib=libc++
+    CXXFLAGS_A  = $(CFLAGS) -stdlib=libc++
+  endif
+  LDFLAGS     =
+  SYSLIBS     = -ltofucom
+  ifdef powerapi
+    MYFLAGS    += -D_POWER_API_
+    CFLAGS     += -I/opt/FJSVtcs/pwrm/aarch64/include
+    CFLAGS_A   += -I/opt/FJSVtcs/pwrm/aarch64/include
+    CXXFLAGS   += -I/opt/FJSVtcs/pwrm/aarch64/include
+    CXXFLAGS_A += -I/opt/FJSVtcs/pwrm/aarch64/include
+    SYSLIBS    += -L/opt/FJSVtcs/pwrm/aarch64/lib64 -lpwr
+  endif
+  ifdef omp
+    CC       += -Kopenmp
+    CXX      += -Kopenmp
+  endif
+else ifeq ($(compiler),intel)
+  ifdef mpi
+    CC        = mpiicc
+    CXX       = mpiicpc
+    F90       = mpiifort
+    MYFLAGS   = -D_MPI_
+    MYFLAGS  += -D_NO_OMP_SINGLE  # error avoiding
+  else
+    CC        = icc
+    CXX       = icpc
+    F90       = ifort
+  endif
+  ifdef omp
+    CC       += -qopenmp
+    CXX      += -qopenmp
+  endif
+  MYFLAGS    += -D_CHECK_TIMING
+  ifeq ($(arch),skylake)
+     CFLAGS   = -O3 -xCORE-AVX512 -fno-alias -qopt-zmm-usage=high -Wno-unknown-pragmas -DARCH_AVX512
+  else ifeq ($(arch),ofp)
+     CFLAGS   = -O3 -xKNL -fno-alias -qopt-zmm-usage=high -Wno-unknown-pragmas
+  endif
+  CXXFLAGS    = $(CFLAGS) -std=gnu++11
+  CXXFLAGS_A  = $(CFLAGS) -std=gnu++11
+  CFLAGS     += -std=gnu99
+  LDFLAGS     =
+  SYSLIBS     =
 else ifeq ($(compiler),gnu)
     CC        = gcc
     CXX       = g++
