@@ -88,6 +88,19 @@
 #define PROF_START_ALL
 #define PROF_STOP_ALL
 
+#elif defined(USE_CALIPER)
+// #include <caliper/cali.h>
+extern void cali_begin_region(const char*);
+extern void cali_end_region(const char*);
+#define PROF_INIT
+#define PROF_FINALIZE
+#define PROF_START(a)     cali_begin_region(a);
+#define PROF_STOP(a)     cali_end_region(a);
+#define PROF_START_SRL(a)     cali_begin_region(a);
+#define PROF_STOP_SRL(a)     cali_end_region(a);
+#define PROF_START_ALL
+#define PROF_STOP_ALL
+
 #elif defined(_CHECK_TIMING)
 #ifdef __cplusplus
 extern "C" {

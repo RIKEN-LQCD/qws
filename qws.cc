@@ -64,12 +64,12 @@
 
 #define min(a,b) (a)>(b)?(b):(a) 
 
-#include "timing.h"
 #include "eml_lib.h"
 
 #ifdef __cplusplus
 extern "C"{
 #endif
+#include "timing.h"
 
   __attribute__((aligned(64))) pglud_t glud;
   __attribute__((aligned(64))) pglus_t glus;
