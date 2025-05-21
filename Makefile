@@ -108,6 +108,7 @@ ARFLAGS   =
 CPPFLAGS  = $(cppflags)
 
 PATH_LIBREADPIC=$(HOME)
+# CALIPER_DIR = <caliper directory>
 CALIPER_DIR =
 
 
