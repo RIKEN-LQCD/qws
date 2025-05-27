@@ -60,7 +60,7 @@ compiler  =fujitsu_native
 #arch [fx100, postk, skylake, ofp, thunderx2, simulator]
 arch      =postk
 #profiler [timing, fapp, fpcoll, pa, caliper] (nondisclousure: timing2)
-profiler  =caliper
+profiler  =timing
 timing2_path=
 prof_selective=
 #target [jinv, in, pre, pos, other, all, all_calc, overlapped, send, send_post, recv, reduc1, reduc2, reduc3]
