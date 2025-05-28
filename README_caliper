@@ -57,7 +57,7 @@ make (or make -j _N_ for parallel make) CALIPER_DIR=<caliper_instal_dir>
 make clean
 
 4) run   
-CALI_CONFIG_MODE=runtime-report mpirun -n 1  ./main 32 6 4 3   1 1 1 1    -1   -1  6 50
+CALI_CONFIG=runtime-report mpirun -n 1  ./main 32 6 4 3   1 1 1 1    -1   -1  6 50
 // Caliper reports outputs are in stderr.
 
 5) test cases   // For more details see README 
