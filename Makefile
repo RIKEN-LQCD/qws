@@ -56,10 +56,10 @@ debug     =
 mpi       =1
 omp       =1
 #compiler [openmpi-gnu, gnu, intel, fujitsu_native, fujitsu_cross]
-compiler  =fujitsu_cross
+compiler  =fujitsu_native
 #arch [fx100, postk, skylake, ofp, thunderx2, simulator]
 arch      =postk
-#profiler [timing, fapp, fpcoll, pa] (nondisclousure: timing2)
+#profiler [timing, fapp, fpcoll, pa, caliper] (nondisclousure: timing2)
 profiler  =timing
 timing2_path=
 prof_selective=
@@ -108,6 +108,8 @@ ARFLAGS   =
 CPPFLAGS  = $(cppflags)
 
 PATH_LIBREADPIC=$(HOME)
+# CALIPER_DIR = <caliper directory>
+CALIPER_DIR =
 
 
 ifeq ($(compiler),openmpi-gnu)
@@ -471,6 +473,10 @@ ifeq ($(target),reduc3)
   CFLAGS += -DPROF_TARGET=TARGET_REDUC3
 endif
 
+ifeq ($(profiler),caliper)
+  CFLAGS += -DUSE_CALIPER -I$(CALIPER_DIR)/include
+  LDFLAGS += -L$(CALIPER_DIR)/lib64 -lcaliper -Wl,-rpath,$(CALIPER_DIR)/lib64
+endif
 ifeq ($(profiler),timing)
   CFLAGS += -D_CHECK_TIMING
 endif
@@ -529,7 +535,11 @@ install: $(DELIVERABLES)
 #	sed -i 's/^\#define VLEND.*/#define VLEND $(vlend)/' ./qws.h
 #	sed -i 's/^\#define VLENS.*/#define VLENS $(vlens)/' ./qws.h
 
+ifeq ($(profiler),caliper)
+main:$(OBJS) $(MAIN)
+else
 main:$(OBJS) $(MAIN) $(LDFLAGS)
+endif
 	$(CXX) -o $@ $(MAIN) $(OBJS) $(SYSLIBS) $(CXXFLAGS) $(LDFLAGS)
 
 ifdef interface
