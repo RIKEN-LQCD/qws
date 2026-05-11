@@ -55,9 +55,9 @@ fugaku_benchmark=
 debug     =
 mpi       =1
 omp       =1
-#compiler [openmpi-gnu, gnu, intel, fujitsu_native, fujitsu_cross]
+#compiler [openmpi-gnu, gnu, intel, fujitsu_native, fujitsu_cross, nec]
 compiler  =fujitsu_native
-#arch [fx100, postk, skylake, ofp, thunderx2, simulator]
+#arch [fx100, postk, skylake, ofp, thunderx2, simulator, sx]
 arch      =postk
 #profiler [timing, fapp, fpcoll, pa, caliper] (nondisclousure: timing2)
 profiler  =timing
@@ -271,6 +271,28 @@ else ifeq ($(compiler),intel)
   CFLAGS     += -std=gnu99
   LDFLAGS     =
   SYSLIBS     =
+else ifeq ($(compiler),nec)
+  ifdef mpi
+    CC        = mpincc
+    CXX       = mpinc++
+    F90       = mpinfort
+    MYFLAGS   = -D_MPI_
+    MYFLAGS  += -D_NO_OMP_SINGLE
+  else
+    CC        = ncc
+    CXX       = nc++
+    F90       = nfort
+  endif
+  MYFLAGS    += -D_CHECK_TIMING
+  CFLAGS      = -O3 -finline-functions -fno-strict-aliasing -report-all
+  CXXFLAGS    = $(CFLAGS) -std=gnu++11
+  CXXFLAGS_A  = $(CFLAGS) -std=gnu++11
+  LDFLAGS     =
+  SYSLIBS     =
+  ifdef omp
+    CC       += -fopenmp
+    CXX      += -fopenmp
+  endif
 else ifeq ($(compiler),gnu)
     CC        = gcc
     CXX       = g++
@@ -313,6 +335,10 @@ else  ifeq ($(arch),skylake)
 else ifeq ($(arch),ofp)
        vlend=8
        vlens=16
+else ifeq ($(arch),sx)
+       vlend=8
+       vlens=16
+       MYFLAGS += -DINLINE_ASM_UNAVAILABLE
 else ifeq ($(arch),simulator)
        vlend=2
        vlens=2
@@ -423,6 +449,10 @@ ifdef kernelize
 endif
 
 OBJS += $(OBJS_COMM)
+
+ifeq ($(compiler),nec)
+  OBJS += prefetch_stub.o
+endif
 
 ifdef strong_prefetch
   objs_with_prefetch = qws.o ddd_in_s.o ddd_out_s.o static_solver.o bicgstab_precdd_s.o
