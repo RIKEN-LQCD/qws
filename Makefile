@@ -55,9 +55,9 @@ fugaku_benchmark=
 debug     =
 mpi       =1
 omp       =1
-#compiler [openmpi-gnu, gnu, intel, fujitsu_native, fujitsu_cross, nec]
+#compiler [openmpi-gnu, gnu, intel, fujitsu_native, fujitsu_cross, nec, nvhpc-hpcx]
 compiler  =fujitsu_native
-#arch [fx100, postk, skylake, ofp, thunderx2, simulator, sx]
+#arch [fx100, postk, skylake, ofp, thunderx2, grace, simulator, sx]
 arch      =postk
 #profiler [timing, fapp, fpcoll, pa, caliper] (nondisclousure: timing2)
 profiler  =timing
@@ -293,6 +293,31 @@ else ifeq ($(compiler),nec)
     CC       += -fopenmp
     CXX      += -fopenmp
   endif
+else ifeq ($(compiler),nvhpc-hpcx)
+  ifdef mpi
+    CC        = mpicc
+    CXX       = mpicxx
+    F90       = mpif90
+    MYFLAGS   = -D_MPI_
+    MYFLAGS  += -D_NO_OMP_SINGLE
+  else
+    CC        = nvc
+    CXX       = nvc++
+    F90       = nvfortran
+  endif
+  MYFLAGS    += -D_CHECK_TIMING
+  CFLAGS      = -O3 -fast
+  ifdef ieee
+    CFLAGS   += -Kieee -Mnofma
+  endif
+  CXXFLAGS    = $(CFLAGS) -std=gnu++11
+  CXXFLAGS_A  = $(CFLAGS) -std=gnu++11
+  LDFLAGS     =
+  SYSLIBS     =
+  ifdef omp
+    CC       += -mp
+    CXX      += -mp
+  endif
 else ifeq ($(compiler),gnu)
     CC        = gcc
     CXX       = g++
@@ -329,7 +354,12 @@ else ifeq ($(arch),postk)
 else ifeq ($(arch),thunderx2)
        vlend=2
        vlens=4
-else  ifeq ($(arch),skylake)
+else ifeq ($(arch),grace)
+       # NVIDIA Grace (Neoverse-V2, SVE2 128-bit). Logical VLEN > HW width
+       # gives the nvc++ auto-vectorizer/unroller more room.
+       vlend = 8
+       vlens = 16
+else ifeq ($(arch),skylake)
        vlend=8
        vlens=16
 else ifeq ($(arch),ofp)
