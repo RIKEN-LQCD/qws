@@ -727,7 +727,7 @@ void test_single_prec_functions(scs_t* in){
   float fac = (float) -kappa2;
 
   if(rank==0)printf("test_single_prec_functions\n");
-  print_scsnorm2("input",in, vols*2);
+  print_scsnorm2("input_s_",in, vols*2);
 
   deo_in_s_(&po, &pe, out, in);
   print_scsnorm2("deo_in_s_",out,vols);

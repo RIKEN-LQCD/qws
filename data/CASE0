@@ -26,7 +26,7 @@ test_double_prec_functions
                      ddd_in_d_ :     2.27146968121126e+04
                         ddd_d_ :     5.01919882422068e+04
 test_single_prec_functions
-                         input :     2.77401621093750e+04
+                      input_s_ :     2.77401621093750e+04
                      deo_in_s_ :     8.48989750000000e+05
                  dee_deo_in_s_ :     3.57508725000000e+06
        one_minus_dee_deo_in_s_ :     1.39274794921875e+04
