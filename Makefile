@@ -246,15 +246,15 @@ else ifeq ($(compiler),fujitsu_native)
   endif
 else ifeq ($(compiler),intel)
   ifdef mpi
-    CC        = mpiicc
-    CXX       = mpiicpc
-    F90       = mpiifort
+    CC        = mpiicx
+    CXX       = mpiicpx
+    F90       = mpiifx
     MYFLAGS   = -D_MPI_
     MYFLAGS  += -D_NO_OMP_SINGLE  # error avoiding
   else
-    CC        = icc
-    CXX       = icpc
-    F90       = ifort
+    CC        = icx
+    CXX       = icpx
+    F90       = ifx
   endif
   ifdef omp
     CC       += -qopenmp

@@ -9,12 +9,13 @@ if [ $# -ne 2 ]; then
 fi
 #----------------------------------------------------------------
 
-egrep ":  |2     ="  $1 | awk '{printf("%30s %30s\n", $1, $NF)}'> res1
-egrep ":  |2     ="  $2 | awk '{print $NF}'> res2
+grep -E ' : +[0-9]|2 += +[0-9]'  $1 | awk '{printf("%30s %30s\n", $1, $NF)}'> res1
+grep -E ' : +[0-9]|2 += +[0-9]'  $2 | awk '{print $NF}'> res2
 paste res1 res2 |awk '{d=sqrt(($2-$3)^2);printf("%27s %22s %22s %e\n", $1, $2, $3, d)}' >res0
 
 
 awk '{e=1;
+    if($2+0!=$2){next}
     if($1=="rnorm^2"){
         if($2<1e-15){e=0}
     }else{
