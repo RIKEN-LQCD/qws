@@ -332,6 +332,37 @@ else ifeq ($(compiler),gnu)
   CXXFLAGS_A  = $(CFLAGS) -std=gnu++11
   LDFLAGS=
   SYSLIBS=
+else ifeq ($(compiler),aocc)
+  ## AMD Optimizing C/C++ Compiler (AOCC, clang-based) for AMD EPYC (Zen) CPUs.
+  ## On TSUBAME4: module load aocc openmpi/5.0.10-gcc and export
+  ## OMPI_CC=clang OMPI_CXX=clang++ OMPI_FC=flang so the OpenMPI wrappers
+  ## drive the AOCC compilers.  Override the target uarch with AMD_MARCH=...
+  ## (e.g. AMD_MARCH=-march=znver3 for a Milan login-node smoke test).
+  AMD_MARCH ?= -march=znver4
+  ifdef mpi
+    CC        = mpicc
+    CXX       = mpicxx
+    F90       = mpif90
+    MYFLAGS   = -D_MPI_
+    MYFLAGS  += -D_NO_OMP_SINGLE  # error avoiding
+  else
+    CC        = clang
+    CXX       = clang++
+    F90       = flang
+  endif
+  MYFLAGS    += -D_CHECK_TIMING
+  ## -fuse-ld=bfd: avoid lld's threaded link, which can hit a low ulimit -u
+  ## on shared nodes; -Qunused-arguments silences the compile-time notice.
+  CFLAGS      = -O3 $(AMD_MARCH) -fno-strict-aliasing -Wno-unknown-pragmas -fuse-ld=bfd -Qunused-arguments
+  CXXFLAGS    = $(CFLAGS) -std=gnu++11
+  CXXFLAGS_A  = $(CFLAGS) -std=gnu++11
+  CFLAGS     += -std=gnu99
+  LDFLAGS     =
+  SYSLIBS     =
+  ifdef omp
+    CC       += -fopenmp
+    CXX      += -fopenmp
+  endif
 else
   $(error Unknown compiler: $(compiler))
 endif
@@ -357,6 +388,12 @@ else ifeq ($(arch),thunderx2)
 else ifeq ($(arch),grace)
        # NVIDIA Grace (Neoverse-V2, SVE2 128-bit). Logical VLEN > HW width
        # gives the nvc++ auto-vectorizer/unroller more room.
+       vlend = 8
+       vlens = 16
+else ifeq ($(arch),zen4)
+       # AMD EPYC Zen4 (Genoa, AVX-512) / Zen3 (Milan, AVX2).
+       # Uses the portable SIMD path in qwsintrin_single.h (no ARCH_* macro),
+       # which the compiler auto-vectorizes; logical VLEN=512bit-equivalent.
        vlend = 8
        vlens = 16
 else ifeq ($(arch),skylake)
