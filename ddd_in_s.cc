@@ -125,8 +125,8 @@ extern "C"{
 #define S(C, S, RI)                                                     \
                 ff_ ## C ## _ ## S ## _ ## RI =                         \
                   for_s(pt,                                             \
-                        fload1_s(pt_except_highest, in_i0, dims_scs, C, S, RI), \
-                        fload1_s(pt_highest, in_ixf, dims_scs, C, S, RI) \
+                        fload1_s_xshift(pt_except_highest, in_i0, dims_scs, C, S, RI), \
+                        fload1_s_xshift(pt_highest, in_ixf, dims_scs, C, S, RI) \
                         );
                 LOOP_3(LOOP_4, LOOP_2, S);
 #undef S
@@ -134,7 +134,7 @@ extern "C"{
                 const float* __restrict__ in_i0  = ((const float *)(in+i0)) + 1;
 #define S(C, S, RI)                                                     \
                 ff_ ## C ## _ ## S ## _ ## RI =                         \
-                  fload1_s(pt_except_highest, in_i0, dims_scs, C, S, RI);
+                  fload1_s_xshift(pt_except_highest, in_i0, dims_scs, C, S, RI);
                 LOOP_3(LOOP_4, LOOP_2, S);
 #undef S
               }
@@ -172,8 +172,8 @@ extern "C"{
 #define S(C, S, RI)                                                     \
                 ff_in_ ## C ## _ ## S ## _ ## RI =                      \
                   for_s(pt,                                             \
-                        fload1_s(pt_lowest, in_ixb, dims_scs, C, S, RI), \
-                        fload1_s(pt_except_lowest, in_i0, dims_scs, C, S, RI) \
+                        fload1_s_xshift(pt_lowest, in_ixb, dims_scs, C, S, RI), \
+                        fload1_s_xshift(pt_except_lowest, in_i0, dims_scs, C, S, RI) \
                         );
                 LOOP_3(LOOP_4, LOOP_2, S);
 #undef S
@@ -193,7 +193,7 @@ extern "C"{
 #undef S
 #define S(C, S, RI)                                                     \
                 ff_in_ ## C ## _ ## S ## _ ## RI =                      \
-                  fload1_s(pt_except_lowest, in_i0, dims_scs, C, S, RI);
+                  fload1_s_xshift(pt_except_lowest, in_i0, dims_scs, C, S, RI);
                 LOOP_3(LOOP_4, LOOP_2, S);
 #undef S
 #define S(C, X, Y)                                                      \

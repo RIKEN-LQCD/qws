@@ -456,11 +456,11 @@
 
 #define __load_backward_mid(b, f, ...)                                  \
   for_s(pt,                                                             \
-        fload1_s(pt_lowest, ((float*)b)+VLENS-1, dims_glus, __VA_ARGS__), \
-        fload1_s(pt_except_lowest, ((float*)f)-1, dims_glus, __VA_ARGS__) \
+        fload1_s_xshift(pt_lowest, ((float*)b)+VLENS-1, dims_glus, __VA_ARGS__), \
+        fload1_s_xshift(pt_except_lowest, ((float*)f)-1, dims_glus, __VA_ARGS__) \
         )
 #define __load_backward_edge(b, f, ...)                                 \
-  fload1_s(pt_except_lowest, ((float*)f)-1, dims_glus, __VA_ARGS__)
+  fload1_s_xshift(pt_except_lowest, ((float*)f)-1, dims_glus, __VA_ARGS__)
 #define __mult_udag_y_2_vec_(upy,py,u_b,u_f,pos) {              \
     vecs_t tmp0, tmp1, tmp2;                                    \
     tmp0 = __load_backward_##pos((u_b), (u_f), 0, 0, 0);        \

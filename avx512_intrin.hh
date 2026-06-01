@@ -75,11 +75,22 @@ typedef __mmask16 pred_t;
 #define fzero_s() \
   _mm512_setzero_ps()
 
+// Aligned masked load/store: all buffers are 64-byte aligned (posix_memalign,
+// CLS=256) and every element offset base*VLENS is a multiple of 64B, so these
+// are safe for all but the x-direction shifted gauge load (see fload1_s_xshift).
 #define fload1_s(pred, head, dims, ...) \
   _mm512_mask_load_ps(_mm512_setzero_ps(), pred, ((const float*)(head)) + addressing<0, 0, dims, __VA_ARGS__>::base*VLENS)
 
 #define fstore1_s(pred, data, head, dims, ...) \
   _mm512_mask_store_ps(((float*)(head)) + addressing<0, 0, dims, __VA_ARGS__>::base*VLENS, pred, data)
+
+// x-direction (SIMD-packed direction) cross-lane gauge load: the head pointer is
+// shifted by +/-1 float ( ((float*)f)-1 , ((float*)b)+VLENS-1 ), i.e. NOT 64-byte
+// aligned, so it must use the UNALIGNED masked load.  This is the only unaligned
+// access in the single-prec kernels (mult_all.h __load_backward_mid/edge); the
+// SVE backend gets it for free since svld1 is alignment-agnostic.
+#define fload1_s_xshift(pred, head, dims, ...) \
+  _mm512_mask_loadu_ps(_mm512_setzero_ps(), pred, ((const float*)(head)) + addressing<0, 0, dims, __VA_ARGS__>::base*VLENS)
 
 #define fadd_s(pred, x, y) \
   _mm512_mask_add_ps(x, pred, x, y)

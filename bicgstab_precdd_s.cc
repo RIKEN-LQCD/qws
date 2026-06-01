@@ -562,8 +562,8 @@ extern "C"{
     extern int rank;
     __attribute__((aligned(64))) static scs_t *w,*s;
     
-    if(0 == w) w = (scs_t*)malloc( sizeof(scs_t) * vols*2);
-    if(0 == s) s = (scs_t*)malloc( sizeof(scs_t) * vols*2);
+    if(0 == w) posix_memalign((void**)&w, CLS, sizeof(scs_t) * vols*2);  // 64B-aligned for AVX-512
+    if(0 == s) posix_memalign((void**)&s, CLS, sizeof(scs_t) * vols*2);
     
     //
     // check residual

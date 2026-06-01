@@ -62,6 +62,9 @@ typedef svbool_t pred_t;
 		 (((const float*)(head)) + addressing<-8, 7, dims, __VA_ARGS__>::base*VLENS), \
 		 (addressing<-8, 7, dims, __VA_ARGS__>::index))
 
+// x-direction shifted load: svld1 is alignment-agnostic, so it is identical to fload1_s.
+#define fload1_s_xshift(pred, head, dims, ...) fload1_s(pred, head, dims, __VA_ARGS__)
+
 #define fstore1_s(pred, data, head, dims, ...) \
   svst1_vnum_f32(pred, \
 		 (((float*)(head)) + addressing<-8, 7, dims, __VA_ARGS__>::base*VLENS), \

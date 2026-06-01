@@ -140,6 +140,9 @@ inline vecs_t mfcopy_s(const vecs_t &a){
 #define fload1_s(pred, head, dims, ...) \
   fload1_s_(pred, ((const float*)(head)) + addressing<0, 0, dims, __VA_ARGS__>::base*VLENS)
 
+// x-direction shifted load: the scalar fallback is alignment-agnostic, so alias.
+#define fload1_s_xshift(pred, head, dims, ...) fload1_s(pred, head, dims, __VA_ARGS__)
+
 //a[v]=a;
 inline vecs_t fload1_s_(const pred_t &p, const float *a){
   int i;

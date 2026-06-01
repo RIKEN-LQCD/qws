@@ -179,7 +179,8 @@ int main( int argc, char *argv[] ){
 #ifdef HALF_PREC
   qws_h_init_(glus,clvs);
 #endif
-#if 1
+#if 0  // was 1: plain malloc() is only 16-byte aligned and #GP-faults the
+       // aligned AVX-512 load/store on bs; use the posix_memalign branch.
   __attribute__((aligned(64))) scd_t* b  = (scd_t*)malloc( sizeof(scd_t) * vold*2);
   __attribute__((aligned(64))) scd_t* x  = (scd_t*)malloc( sizeof(scd_t) * vold*2);
   __attribute__((aligned(64))) scd_t* r  = (scd_t*)malloc( sizeof(scd_t) * vold*2);
@@ -721,7 +722,8 @@ extern "C" void ddd_s_(scs_t* out, scs_t* in);
 
 //----------------------------------------------------------------------------
 void test_single_prec_functions(scs_t* in){
-  __attribute__((aligned(64))) scs_t* out = (scs_t*)malloc( sizeof(scs_t) * vols*2);
+  scs_t* out;
+  posix_memalign((void**)&out, CLS, sizeof(scs_t) * vols*2);  // 64B-aligned for AVX-512
   int pe=0;
   int po=1;
   float fac = (float) -kappa2;

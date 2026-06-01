@@ -597,7 +597,8 @@ extern "C"{
   }
   //----------------------------------------------------------------------------------------
   void mtilde_s_(scs_t* out, scs_t* in){
-    scs_t* tmp = (scs_t*)malloc( sizeof(scs_t) * nxs*ny*nz*nt);
+    scs_t* tmp;
+    posix_memalign((void**)&tmp, CLS, sizeof(scs_t) * nxs*ny*nz*nt);  // 64B-aligned for AVX-512
     dee_deo_s_(pco, pce, tmp, in);
     one_minus_dee_deo_s_(pce, pco, out, tmp, in);
     free(tmp);

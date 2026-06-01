@@ -66,11 +66,11 @@ extern "C"{
 
   void bicgstab_dd_s_(scs_t* x, scs_t* b, int* conviter, int* maxiter){
     __attribute__((aligned(64))) static scs_t *q, *r, *p , *t, *r0;
-    if( q==0) q = (scs_t*)malloc( sizeof(scs_t) * vols*2);
-    if( r==0) r = (scs_t*)malloc( sizeof(scs_t) * vols*2);
-    if( p==0) p = (scs_t*)malloc( sizeof(scs_t) * vols*2);
-    if( t==0) t = (scs_t*)malloc( sizeof(scs_t) * vols*2);
-    if(r0==0) r0= (scs_t*)malloc( sizeof(scs_t) * vols*2);
+    if( q==0) posix_memalign((void**)&q,  CLS, sizeof(scs_t) * vols*2);  // 64B-aligned for AVX-512
+    if( r==0) posix_memalign((void**)&r,  CLS, sizeof(scs_t) * vols*2);
+    if( p==0) posix_memalign((void**)&p,  CLS, sizeof(scs_t) * vols*2);
+    if( t==0) posix_memalign((void**)&t,  CLS, sizeof(scs_t) * vols*2);
+    if(r0==0) posix_memalign((void**)&r0, CLS, sizeof(scs_t) * vols*2);
     float bnorm, rnorm, rtmp0, rtmp1, rtmp2, redu[3];
     complex< float > rho0, rho, beta, omega, alpha, ctmp;
     //rvecs_t rvd0, rvd1, rvd2, rvd3, rvd4, rvd5;

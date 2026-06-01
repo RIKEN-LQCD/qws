@@ -74,8 +74,10 @@ extern "C"{
 
   //----------------------------------------------------------------------------------------
   void approx_inv_dirac_op(scd_t* x, scd_t* b, double *tol, int* iter, int* maxiter, int* nsap, int* nm){
-    __attribute__((aligned(64))) scs_t* b_s = (scs_t*)malloc( sizeof(scs_t) * vols*2);
-    __attribute__((aligned(64))) scs_t* x_s = (scs_t*)malloc( sizeof(scs_t) * vols*2);
+    // NB: __attribute__((aligned(64))) on a pointer aligns the variable, NOT the
+    // malloc'd heap -- it gives no AVX-512-safe data. Use posix_memalign instead.
+    scs_t* b_s; posix_memalign((void**)&b_s, CLS, sizeof(scs_t) * vols*2);
+    scs_t* x_s; posix_memalign((void**)&x_s, CLS, sizeof(scs_t) * vols*2);
 //    __attribute__((aligned(64))) scs_t* t_s = (scs_t*)malloc( sizeof(scs_t) * vols*2);
     scs_t* t_s;
     posix_memalign((void **)&t_s, CLS, sizeof(scs_t)*vols*2);
